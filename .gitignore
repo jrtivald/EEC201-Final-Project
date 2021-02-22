@@ -1,0 +1,26 @@
+#Ignore everything except for...
+*
+
+#Git files
+!.gitignore
+!*.md
+
+#Documenation
+!docs/
+!*.pdf
+
+#Data
+!data/harvard_sentences/
+!data/Test_Data/
+!data/Training_Data/
+!*.wav
+!*.png
+
+#Matlab
+!matlab/
+!*.m
+
+# latex/pdflatex auxiliary files:
+!report/LaTex/
+!*.tex
+!*.log
