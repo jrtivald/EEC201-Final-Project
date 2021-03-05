@@ -25,6 +25,11 @@ frame_size = 20;
 frame_overlap = 8;
 N_fft = 512;
 
+%Trim down the files for the "important part"
+trim_len = 13000;
+train_trim_offset = 2500;
+test_trim_offset = 2500;
+
 %Read in a training file
 train_file = zeros([train_rec_cnt,max_len]);
 train_fs = zeros([train_rec_cnt,1]);
@@ -46,6 +51,10 @@ for i = 1:train_rec_cnt
     disp(strcat(file,' length: ',num2str(length(tmp_wav))))
 end
 
+%Trim down training data
+train_file(:,1:trim_len) = train_file(:,train_trim_offset:(train_trim_offset+trim_len-1));
+train_file(:,trim_len+1:end) = [];
+
 %Read in a testing file
 test_file = zeros([test_rec_cnt,max_len]);
 test_fs = zeros([test_rec_cnt,1]);
@@ -66,6 +75,10 @@ for i = 1:test_rec_cnt
     
     disp(strcat(file,' length: ',num2str(length(tmp_wav))))
 end
+
+%Trim down test data
+test_file(:,1:trim_len) = test_file(:,test_trim_offset:(test_trim_offset+trim_len-1));
+test_file(:,trim_len+1:end) = [];
 
 %Calculate the Mel-Frequency Cepstrum Coefficients
 tmp = mfcc(train_file(1,:), train_fs(1), pre_a, frame_size, frame_overlap, N_fft);

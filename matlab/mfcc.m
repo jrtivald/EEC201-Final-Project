@@ -31,6 +31,7 @@ function coeff = mfcc(xn, fs, premph, frm_sz, frm_ovr, N)
     %Calculate the FFT and Periodogram of all the frames
     x_frm_fft = fft(x_frm_win, N, 2);
     x_frm_period = (abs(x_frm_fft).^2)/N;
+    x_frm_period_freq = 0:fs/N:fs-(fs/N);
     
     %Cesptral Coefficients
     
@@ -39,7 +40,7 @@ function coeff = mfcc(xn, fs, premph, frm_sz, frm_ovr, N)
     %Output the MFCCs
     coeff = x_frm_period;
     
-    %Plot the different stagesLine
+    %Plot input and pre-emphasis
     figure('name','MFCC')    
     tiledlayout(2,1)
 
@@ -54,5 +55,26 @@ function coeff = mfcc(xn, fs, premph, frm_sz, frm_ovr, N)
     title('pre-emph(xn)')
     
     linkaxes([ax1 ax2],'xy')
+    
+    %Plot a random frame for spot check
+    figure('name','Frame Analysis')
+    
+    %Choose random frame
+    idx = round(rand(1)*num_frm);
+    
+    %plot the frame of data
+    subplot(1,3,1)
+    plot(0:sz_idx-1,x_frms(idx,:))
+    title(strcat('Frame ',num2str(idx),' data'))
+    
+    %plot the windowed data
+    subplot(1,3,2)
+    plot(0:sz_idx-1,x_frm_win(idx,:))
+    title(strcat('Frame ',num2str(idx),' Windowed'))
+    
+    %plot the data periodogram
+    subplot(1,3,3)
+    plot(x_frm_period_freq,x_frm_period(idx,:))
+    title(strcat('Frame ',num2str(idx),' Periodogram'))
 
 end
