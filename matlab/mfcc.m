@@ -51,21 +51,12 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
     end
     
     if gen_plots 
-        % Plot input and pre-emphasis
-        figure('name','Input Signals')    
-        tiledlayout(2,1)
-
         % Plot input
-        ax1 = nexttile;
+        figure('name','Input Signals')
         plot(xn)
-        title('xn')
-
-        % Pre-Emphasis plot
-        ax2 = nexttile;
-        plot(xn)
-        title('pre-emph(xn)')
-
-        linkaxes([ax1 ax2],'xy')
+        title('Inpus Signal')
+        xlabel('sample')
+        ylabel('amplitude')
 
         % display signal spectrogram
         figure('Name','Signal Spectrogram')
