@@ -16,6 +16,7 @@ close all;
 clc;
 
 % Parameters
+TRAIN_EN         = 1;            %Set to 1 if training   
 TRAIN_REC_CNT    = 11;
 TEST_REC_CNT     = 8;
 MAX_LEN          = 30000;
@@ -29,6 +30,11 @@ MEL_NUM_BANKS    = 40;
 CEPS_START_BANK  = 2;
 CEPS_NUM_BANKS   = 15;
 
+% LBG VQ Parameters
+LBG_VQ_EPSILON = 0.01;
+LBG_VQ_M = 4;
+FEATURE_SPACE_RANGE = [-1 1];
+
 % Trim down the files for the "important part"
 % TODO: make the word envelope detection automatic
 TRIM_LEN          = 13000;
@@ -41,7 +47,7 @@ train_signal = zeros([TRAIN_REC_CNT,MAX_LEN]);
 train_fs = zeros([TRAIN_REC_CNT,1]);
 
 for i = 1:TRAIN_REC_CNT
-    file = strcat('../data/Training_Data/s',num2str(i),'.wav');
+    file = strcat('data/Training_Data/s',num2str(i),'.wav');
     [tmp_wav, tmp_fs] = audioread(file);
     
     %check if stereo
@@ -78,7 +84,7 @@ test_signal = zeros([TEST_REC_CNT,MAX_LEN]);
 test_fs = zeros([TEST_REC_CNT,1]);
 
 for i = 1:TEST_REC_CNT
-    file = strcat('../data/Test_Data/s',num2str(i),'.wav');
+    file = strcat('data/Test_Data/s',num2str(i),'.wav');
     [tmp_wav, test_fs(i)] = audioread(file);
     
     % check if stereo
@@ -143,3 +149,6 @@ for i = 1:TRAIN_REC_CNT
    xlabel('Coeff. #')
    ylabel('Frame #')
 end
+
+%% Vector Quantize the training data for matching the test data
+certainty = LBG_VQ(mfcc_coeffs, CEPS_NUM_BANKS+1, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, TRAIN_EN);
