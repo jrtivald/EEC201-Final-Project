@@ -19,12 +19,15 @@ clc;
 TRAIN_REC_CNT    = 11;
 TEST_REC_CNT     = 8;
 MAX_LEN          = 30000;
-CHANNEL          = 1;            %Some audio files have stereo
-PRE_A            = 0.95;         %Pre-Emphasis coefficient
-FRAME_SIZE_MS    = 30;
+CHANNEL          = 1;            % Some audio files have stereo
+
+% MFCC parameters
+FRAME_SIZE_MS    = 20;
 FRAME_OVERLAP_MS = 8;
-N_FFT            = 512;
-NUM_MEL_BANKS    = 20;
+FFT_NUM_POINTS   = 512;
+MEL_NUM_BANKS    = 40;
+CEPS_START_BANK  = 2;
+CEPS_NUM_BANKS   = 15;
 
 % Trim down the files for the "important part"
 % TODO: make the word envelope detection automatic
@@ -60,14 +63,14 @@ train_signal(:,1:TRIM_LEN) = train_signal(:,TRAIN_TRIM_OFFSET:...
     (TRAIN_TRIM_OFFSET+TRIM_LEN-1));
 train_signal(:,TRIM_LEN+1:end) = [];
 
-% % plot spectrograms of training data to visualize
-% figure('Name','Training Data Spectrograms')
-% for i = 1:TRAIN_REC_CNT
-%     subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%     spectrogram(train_signal(i,:),hamming(FRAME_SIZE_MS/1000*train_fs(i)),...
-%         FRAME_OVERLAP_MS/1000*train_fs(i),N_FFT,train_fs(i));
-%     title(strcat('s',num2str(i),'.wav'))
-% end
+% plot spectrograms of training data to visualize
+figure('Name','Training Data Spectrograms')
+for i = 1:TRAIN_REC_CNT
+    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+    spectrogram(train_signal(i,:),hamming(FRAME_SIZE_MS/1000*train_fs(i)),...
+        FRAME_OVERLAP_MS/1000*train_fs(i),FFT_NUM_POINTS,train_fs(i));
+    title(strcat('s',num2str(i),'.wav'))
+end
 
 %% Read in a testing file
 
@@ -103,7 +106,40 @@ test_signal(:,TRIM_LEN+1:end) = [];
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
+%% run signals through pre-emphasis filter
+
+train_signal_preemph = zeros(TRAIN_REC_CNT,TRIM_LEN);
+for i = 1:TRAIN_REC_CNT
+   train_signal_preemph(i,:) = pre_emph(train_signal(i,:)); 
+end
+
+% plot filtered signals
+figure('Name','Filtered Training Data Spectrograms')
+for i = 1:TRAIN_REC_CNT
+    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+    spectrogram(train_signal_preemph(i,:),hamming(FRAME_SIZE_MS/1000*train_fs(i)),...
+        FRAME_OVERLAP_MS/1000*train_fs(i),FFT_NUM_POINTS,train_fs(i));
+    title(strcat('s',num2str(i),'.wav'))
+end
+
 %% Calculate the Mel-Frequency Cepstrum Coefficients
 
-tmp = mfcc(train_signal(1,:), train_fs(1), PRE_A, FRAME_SIZE_MS, ...
-    FRAME_OVERLAP_MS, N_FFT,NUM_MEL_BANKS);
+% calculate MFCC coefficients
+mfcc_coeffs = cell(1,TRAIN_REC_CNT);
+for i = 1:TRAIN_REC_CNT
+    mfcc_coeffs{i} = mfcc(train_signal_preemph(i,:), train_fs(1), ... 
+        FRAME_SIZE_MS,FRAME_OVERLAP_MS, FFT_NUM_POINTS, MEL_NUM_BANKS, ...
+        CEPS_START_BANK, CEPS_NUM_BANKS);
+end
+
+% plot MFCC coefficients
+figure('Name','MFCCs')
+for i = 1:TRAIN_REC_CNT
+   subplot(2,ceil(TRAIN_REC_CNT/2),i)
+   imagesc(mfcc_coeffs{i}')
+   colorbar
+   axis xy
+   title(strcat('MFCC s',num2str(i),'.wav'))
+   xlabel('Coeff. #')
+   ylabel('Frame #')
+end
