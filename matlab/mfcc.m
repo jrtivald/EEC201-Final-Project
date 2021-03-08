@@ -15,9 +15,11 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
     frm_sz_smpls = ceil(frm_sz_ms/1000*fs);
     frm_ovr_smpls = ceil(frm_ovr_ms/1000*fs);
     
+    % generate frame window
+    w = hamming(frm_sz_smpls,'periodic');
+    
     % generate signal spectrogram (STFT)
-    [spec,spec_freq,spec_time] = spectrogram(xn,hamming(frm_sz_smpls),...
-        (frm_ovr_smpls),fft_N,fs);
+    [spec,spec_freq,spec_time] = spectrogram(xn,w,frm_ovr_smpls,fft_N,fs);
 
     % magnitude squared of the spectrogram frames
     spec_mag_2 = spec .* conj(spec);
@@ -33,7 +35,7 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
     ceps = dct(mel_log);
     
     % select desired cepstrum banks
-    ceps_sel = ceps(ceps_start_bank:ceps_start_bank+ceps_num_banks,:);
+    ceps_sel = ceps(ceps_start_bank:ceps_start_bank+ceps_num_banks-1,:);
     
     % normalize range to [-1:1] (inf. norm)
     ceps_frame_norm = zeros(1,numel(spec_time));
