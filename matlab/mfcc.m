@@ -8,73 +8,102 @@
 %
 % Date: 2/26/2021
 
-function coeff = mfcc(xn, fs, premph, frm_sz, frm_ovr, N)
+function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
+    mel_num_banks, ceps_start_bank, ceps_num_banks, gen_plots)
 
-    %Apply Pre-Emphasis
-    xn_emph = [xn(1), xn(2:end)-premph.*xn(1:end-1)];
+    % convert frame specs from mS to samples
+    frm_sz_smpls = ceil(frm_sz_ms/1000*fs);
+    frm_ovr_smpls = ceil(frm_ovr_ms/1000*fs);
     
-    %Apply framing
-    %Determine frame and overlap indecies
-    sz_idx = round(frm_sz*fs*0.001);
-    ovr_idx = round(frm_ovr*fs*0.001);
-    frm_step = sz_idx-(ovr_idx/2);
-    num_frm = ceil(abs(length(xn)-sz_idx)/frm_step);
+    % generate frame window
+    w = hamming(frm_sz_smpls,'periodic');
     
-    %Generate Frames
-    emph_idx = repmat((1:sz_idx),num_frm,1) + repmat((1:frm_step:num_frm*frm_step),sz_idx,1)';
-    x_frms = xn_emph(emph_idx);
-    
-    %Generate Hamming window and apply to all frames
-    hw = hamming(sz_idx);
-    x_frm_win = x_frms.*repmat(hw',num_frm,1);
-    
-    %Calculate the FFT and Periodogram of all the frames
-    x_frm_fft = fft(x_frm_win, N, 2);
-    x_frm_period = (abs(x_frm_fft).^2)/N;
-    x_frm_period_freq = 0:fs/N:fs-(fs/N);
-    
-    %Cesptral Coefficients
-    
-    %Mean Normalization
-    
-    %Output the MFCCs
-    coeff = x_frm_period;
-    
-    %Plot input and pre-emphasis
-    figure('name','MFCC')    
-    tiledlayout(2,1)
+    % generate signal spectrogram (STFT)
+    [spec,spec_freq,spec_time] = spectrogram(xn,w,frm_ovr_smpls,fft_N,fs);
 
-    % Plot input
-    ax1 = nexttile;
-    plot(xn)
-    title('xn')
+    % magnitude squared of the spectrogram frames
+    spec_mag_2 = spec .* conj(spec);
+    
+    % generate mel-freq filter bank matrix
+    mel_banks = melfb_gen(mel_num_banks,fft_N,fs);
+    
+    % filter spectrum frames through mel-spaced filter bank
+    mel = mel_banks * spec_mag_2;
 
-    % Pre-Emphasis plot
-    ax2 = nexttile;
-    plot(xn_emph)
-    title('pre-emph(xn)')
+    % calculate cepstrum
+    mel_log = log(mel);
+    ceps = dct(mel_log);
     
-    linkaxes([ax1 ax2],'xy')
+    % select desired cepstrum banks
+    ceps_sel = ceps(ceps_start_bank:ceps_start_bank+ceps_num_banks-1,:);
     
-    %Plot a random frame for spot check
-    figure('name','Frame Analysis')
+    % normalize range to [-1:1] (inf. norm)
+    ceps_frame_norm = zeros(1,numel(spec_time));
+    for i = 1:numel(spec_time)
+        ceps_frame_norm(i) = norm(ceps_sel(:,i),'Inf');
+    end
+    ceps_normalized = ceps_sel ./ ceps_frame_norm;
     
-    %Choose random frame
-    idx = round(rand(1)*num_frm);
+    % Output the MFCC coefficients
+    mfcc_coeffs = ceps_normalized;
     
-    %plot the frame of data
-    subplot(1,3,1)
-    plot(0:sz_idx-1,x_frms(idx,:))
-    title(strcat('Frame ',num2str(idx),' data'))
+    % enable plots for debug
+    if ~exist('gen_plots','var')
+        gen_plots = false;
+    end
     
-    %plot the windowed data
-    subplot(1,3,2)
-    plot(0:sz_idx-1,x_frm_win(idx,:))
-    title(strcat('Frame ',num2str(idx),' Windowed'))
-    
-    %plot the data periodogram
-    subplot(1,3,3)
-    plot(x_frm_period_freq,x_frm_period(idx,:))
-    title(strcat('Frame ',num2str(idx),' Periodogram'))
+    if gen_plots 
+        % Plot input
+        figure('name','Input Signals')
+        plot(xn)
+        title('Inpus Signal')
+        xlabel('sample')
+        ylabel('amplitude')
 
+        % display signal spectrogram
+        figure('Name','Signal Spectrogram')
+        imagesc(spec_freq,spec_time,db(spec_mag_2)')
+        colorbar
+        axis xy
+        title('Signal Spectrogram')
+        xlabel('Freq. (Hz)')
+        ylabel('Time (s)')
+    
+        % plot filterbanks
+        figure('Name','Mel-Spaced Filter Banks')
+        plot(spec_freq,mel_banks)
+        title('Mel-Spaced Filter Banks')
+        xlabel('freq. (Hz)')
+        ylabel('Magnitude')
+        grid on
+
+        % display filter bank spectrogram
+        figure('Name','Filter Bank Spectrogram')
+        imagesc(0:mel_num_banks-1,spec_time,db(mel)')
+        colorbar
+        axis xy
+        title('Mel-Spaced Filter Bank Spectrogram')
+        xlabel('Bank Index')
+        ylabel('Time (s)')
+
+        % plot cepstrum
+        figure('Name','Cepstrum')
+        imagesc(0:mel_num_banks-1,spec_time,ceps')
+        colorbar
+        axis xy
+        title('Cepstrum')
+        xlabel('index')
+        ylabel('Time (s)')
+        
+        % plot MFCC coefficients
+        figure('Name','MFCC Coefficients')
+        imagesc(0:ceps_num_banks-1,spec_time,mfcc_coeffs')
+        colorbar
+        axis xy
+        title('MFCC Coefficients')
+        xlabel('index')
+        ylabel('Time (s)')
+
+    end 
+    
 end
