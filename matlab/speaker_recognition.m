@@ -22,8 +22,8 @@ MAX_LEN          = 30000;
 CHANNEL          = 1;            % Some audio files have stereo
 
 % Word Detection Parameters
-WORD_DETECT_THRESH_DB = -74;
-WORD_LENGTH_MS        = 500;
+WORD_DETECT_THRESH_DB = -62;
+WORD_LENGTH_MS        = 550;
 
 % MFCC parameters
 FRAME_SIZE_MS    = 20;
@@ -152,7 +152,7 @@ end
 
 %% extract word envelopes from signals
 
-word_signal = zeros(TRAIN_REC_CNT,WORD_LENGTH_MS/1000*12500);
+word_signal = zeros(TRAIN_REC_CNT,ceil(WORD_LENGTH_MS/1000*12500));
 for i = 1:TRAIN_REC_CNT
     word_signal(i,:) = word_extract(train_signal_normalized(i,:),...
         train_fs(i),WORD_DETECT_THRESH_DB,WORD_LENGTH_MS);

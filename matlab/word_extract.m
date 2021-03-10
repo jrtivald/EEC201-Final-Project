@@ -11,7 +11,7 @@ STFT_FFT_LEN       = 1024;
 x_norm = (1/2) * x ./ norm(x,'Inf');
 
 % generate window
-win_num_smpls = STFT_WIN_LEN_MS/1000*Fs;
+win_num_smpls = ceil(STFT_WIN_LEN_MS/1000*Fs);
 win_ovrlp_smpls = ceil(STFT_WIN_OVRLAP_MS/1000*Fs);
 w = hamming(win_num_smpls,'periodic');
 
@@ -33,7 +33,7 @@ ovr_thresh_idx = find(db(s_avg_pwr,'power') > THRESH_DB);
 % determine start and end of word envelope
 word_start_idx = floor(s_time(ovr_thresh_idx(1))*Fs);
 %word_end_idx = ceil(s_time(ovr_thresh_idx(end))*Fs);
-word_end_idx = word_start_idx + WORD_LENGTH_MS/1000*Fs-1;
+word_end_idx = word_start_idx + ceil(WORD_LENGTH_MS/1000*Fs)-1;
 
 y = x(word_start_idx:word_end_idx);
 
