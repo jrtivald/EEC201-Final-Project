@@ -31,15 +31,15 @@ function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebooks, epsilon, m_cnt, ftr_spac
                 % Build codebook matrix from mfcc
                 if length(find(codebooks(j,:))) == 2
                     % if 2-D
-                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),1:71);...
-                                mfcc{1,i}(codebooks(j,2),1:71)];
+                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),:);...
+                                mfcc{1,i}(codebooks(j,2),:)];
                     
                     centroids{j,i} = {[mid_ftr_range mid_ftr_range]};
                 else
                     % If not 2-D, then 3-D
-                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),1:71);...
-                                mfcc{1,i}(codebooks(j,2),1:71);...
-                                mfcc{1,i}(codebooks(j,3),1:71)];
+                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),:);...
+                                mfcc{1,i}(codebooks(j,2),:);...
+                                mfcc{1,i}(codebooks(j,3),:)];
                     
                     centroids{j,i} = {[mid_ftr_range mid_ftr_range mid_ftr_range]};
                 end
@@ -102,13 +102,13 @@ function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebooks, epsilon, m_cnt, ftr_spac
             % Build codebook matrix from mfcc
             if length(find(codebooks(j,:))) == 2
                 %if 2-D
-                tmp_mfcc = [mfcc(codebooks(j,1),1:71);...
-                            mfcc(codebooks(j,2),1:71)];
+                tmp_mfcc = [mfcc(codebooks(j,1),:);...
+                            mfcc(codebooks(j,2),:)];
             else
                 % If not 2-D, then 3-D
-                tmp_mfcc = [mfcc(codebooks(j,1),1:71);...
-                            mfcc(codebooks(j,2),1:71);...
-                            mfcc(codebooks(j,3),1:71)];
+                tmp_mfcc = [mfcc(codebooks(j,1),:);...
+                            mfcc(codebooks(j,2),:);...
+                            mfcc(codebooks(j,3),:)];
             end
                 
             % Loop through all sets of speaker centroids
