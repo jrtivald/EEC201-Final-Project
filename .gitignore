@@ -1,26 +1,24 @@
-#Ignore everything except for...
+# Ignore everything except for...
 *.*
 
-#Git files
+# Git files
 !.gitignore
 !*.md
 
-#Documenation
+# Documenation
 !docs/
 !*.pdf
 
-#Data
+# Data
 !data/harvard_sentences/
 !data/Test_Data/
 !data/Training_Data/
 !*.wav
 !*.png
 
-#Matlab
+# Matlab
 !matlab/
 !*.m
 
-# latex/pdflatex auxiliary files:
-!report/LaTex/
-!*.tex
-!*.log
+# report files:
+!img/
