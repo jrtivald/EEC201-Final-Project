@@ -15,8 +15,7 @@ clear;
 close all;
 clc;
 
-% Parameters
-TRAIN_EN         = 1;            %Set to 1 if training   
+% Parameters 
 TRAIN_REC_CNT    = 11;
 TEST_REC_CNT     = 8;
 MAX_LEN          = 30000;
@@ -34,6 +33,9 @@ CEPS_NUM_BANKS   = 15;
 LBG_VQ_EPSILON = 0.01;
 LBG_VQ_M = 4;
 FEATURE_SPACE_RANGE = [-1 1];
+SPKR_PLT = 3;
+FEATURE_CODEBOOKS = [[1 9 5];
+                     [11 3 8]];
 
 % Trim down the files for the "important part"
 % TODO: make the word envelope detection automatic
@@ -151,4 +153,12 @@ for i = 1:TRAIN_REC_CNT
 end
 
 %% Vector Quantize the training data for matching the test data
-certainty = LBG_VQ(mfcc_coeffs, CEPS_NUM_BANKS+1, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, TRAIN_EN);
+LBG_VQ(mfcc_coeffs, FEATURE_CODEBOOKS, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 1);
+
+% Plot the VQ data
+plot_codebooks(mfcc_coeffs, FEATURE_CODEBOOKS, SPKR_PLT);
+
+% Test to see if VQ will resolve on the correct training signal.
+[test_distortion, speaker_number] = LBG_VQ(mfcc_coeffs{1,7}(:,:), FEATURE_CODEBOOKS, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
+
+disp(strcat('Predicted Speaker is: ',num2str(speaker_number)))

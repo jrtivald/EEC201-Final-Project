@@ -9,27 +9,40 @@
 %
 % Date: 3/5/2021
 
-function certainty = LBG_VQ(mfcc, feature_cnt, epsilon, m_cnt, ftr_space_range, train_en)
+function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebooks, epsilon, m_cnt, ftr_space_range, train_en)
 
     % if training mode is enabled, start with initilzed codebook
     if train_en == 1
 
         % Start with initialized centroids
         mid_ftr_range = (max(ftr_space_range)+min(ftr_space_range))/2;
-        centroid_init = [mid_ftr_range mid_ftr_range];
-        centroids = cell(feature_cnt-1,size(mfcc,2));
-        centroids(:,:) = {centroid_init};
-        m = 1;
+        centroids = cell(size(codebooks,1),size(mfcc,2));
 
         % Loop through all the different speakers
         for i = 1:size(mfcc,2)
 
-            % Loop through feature pairs building feature spaces
-            for j = 1:feature_cnt-1
+            % Loop through feature groups set by user via 'codebooks'
+            for j = 1:size(codebooks,1)
 
                 % Reset m
                 m = 1;
                 
+                % Build codebook matrix from mfcc
+                if length(find(codebooks(j,:))) == 2
+                    % if 2-D
+                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),1:71);...
+                                mfcc{1,i}(codebooks(j,2),1:71)];
+                    
+                    centroids{j,i} = {[mid_ftr_range mid_ftr_range]};
+                else
+                    % If not 2-D, then 3-D
+                    tmp_mfcc = [mfcc{1,i}(codebooks(j,1),1:71);...
+                                mfcc{1,i}(codebooks(j,2),1:71);...
+                                mfcc{1,i}(codebooks(j,3),1:71)];
+                    
+                    centroids{j,i} = {[mid_ftr_range mid_ftr_range mid_ftr_range]};
+                end
+
                 % Continue until desired centroid count achieved.
                 while m < m_cnt
 
@@ -38,56 +51,83 @@ function certainty = LBG_VQ(mfcc, feature_cnt, epsilon, m_cnt, ftr_space_range, 
                     m = 2*m;
 
                     % Cluster Vectors
-                    [min_distort, min_distort_idx] = vector_cluster(mfcc{1,i}(j:j+1,1:71),centroids{j,i});
+                    [min_distort, min_distort_idx] = vector_cluster(tmp_mfcc,centroids{j,i});
                     distortion = sum(min_distort)/length(min_distort);
 
                     % Initialize some loop parameters
                     init_flag = 1;
                     distortion_prime = distortion;
-
+                    
                     % Continue until distortion is less than epsilon threshold
-                    while (distortion_prime-distortion)/distortion >= epsilon || init_flag == 1
+                    while abs(distortion_prime-distortion)/distortion >= epsilon || init_flag == 1
 
                         % clear initial run flag
                         init_flag = 0;
                         
                         % Update Distortion
                         distortion_prime = distortion;
-
+                        
                         % Find Centroids
-                        centroids{j,i} = find_centroids(mfcc{1,i}(j:j+1,1:71), centroids{j,i}, min_distort_idx);
-
+                        centroids{j,i} = find_centroids(tmp_mfcc, centroids{j,i}, min_distort_idx);
+                        
                         % Cluster Vectors
-                        [min_distort, min_distort_idx] = vector_cluster(mfcc{1,i}(j:j+1,1:71),centroids{j,i});
+                        [min_distort, min_distort_idx] = vector_cluster(tmp_mfcc,centroids{j,i});
                         distortion = sum(min_distort)/length(min_distort);
-
+                        
                     end
                 end
             end
         end
-
-        % plot codebooks
-        plot_speaker = 1;
-        figure('Name','Speaker 1 Codebooks')
-        for i = 1:feature_cnt-1
-            subplot(2,ceil((feature_cnt-1)/2),i)
-            scatter(mfcc{1,plot_speaker}(i,1:71),mfcc{1,plot_speaker}(i+1,1:71))
-            hold on
-            scatter(centroids{i,plot_speaker}(:,1),centroids{i,plot_speaker}(:,2),[],'filled')
-            title(strcat('Codebook',num2str(i)))
-            xlabel(strcat('MFCC',num2str(i)))
-            ylabel(strcat('MFCC',num2str(i+1)))
-        end
         
         % Save codebooks
         save('codebook.mat','centroids');
-
+        
+        % No return when training
+        spkr_dist = NaN;
+        spkr_num = NaN;
+        dist_vec = NaN;
+        
     else
+        
         % Read in the codebook centroids
         load('codebook.mat','centroids');
+        
+        % initialize distortion matrix
+        dist_mat = zeros(size(codebooks,1),size(centroids,2));
+            
+        % Loop through feature groups set by user via 'codebooks'
+        for j = 1:size(codebooks,1)
+            
+            % Build codebook matrix from mfcc
+            if length(find(codebooks(j,:))) == 2
+                %if 2-D
+                tmp_mfcc = [mfcc(codebooks(j,1),1:71);...
+                            mfcc(codebooks(j,2),1:71)];
+            else
+                % If not 2-D, then 3-D
+                tmp_mfcc = [mfcc(codebooks(j,1),1:71);...
+                            mfcc(codebooks(j,2),1:71);...
+                            mfcc(codebooks(j,3),1:71)];
+            end
+                
+            % Loop through all sets of speaker centroids
+            for i = 1:size(centroids,2)
+                
+                % Calculate the minimum distortion
+                [min_distort, min_distort_idx] = vector_cluster(tmp_mfcc,centroids{j,i});
+                dist_mat(j,i) = sum(min_distort)/length(min_distort);
+                
+            end
+        end
+        
+        %Sum up all the distortion
+        dist_vec = sum(dist_mat,1);
+        
     end
     
-    certainty = 0;
+    %Determine the speaker
+    [spkr_dist, spkr_num] = min(dist_vec);
+
 end
 
 %% split_centroids()
@@ -95,19 +135,22 @@ function new_centroids = split_centroids(current_centroids, epsilon)
 
     new_centroids = [];
 
-    % Test if input is cell array
+    %If cell, convert to stored array
     if iscell(current_centroids) == 1
-        % Iterate through all the centroids and split
-        for i = 1:size(current_centroids{1},1)
-            new_centroids = [new_centroids(:,:);...
-                            [current_centroids{1}(i,1)+epsilon current_centroids{1}(i,2)+epsilon];...
-                            [current_centroids{1}(i,1)-epsilon current_centroids{1}(i,2)-epsilon]];
-        end
-    else
-        for i = 1:size(current_centroids,1)
+        current_centroids = current_centroids{1}(:,:);
+    end
+
+    % Iterate through all the centroids and split
+    for i = 1:size(current_centroids,1)
+        %check if 2-D
+        if size(current_centroids,2) == 2
             new_centroids = [new_centroids(:,:);...
                             [current_centroids(i,1)+epsilon current_centroids(i,2)+epsilon];...
                             [current_centroids(i,1)-epsilon current_centroids(i,2)-epsilon]];
+        else
+            new_centroids = [new_centroids(:,:);...
+                            [current_centroids(i,1)+epsilon current_centroids(i,2)+epsilon current_centroids(i,3)+epsilon];...
+                            [current_centroids(i,1)-epsilon current_centroids(i,2)-epsilon current_centroids(i,3)-epsilon]];
         end
     end
 
@@ -129,13 +172,23 @@ end
 function new_centroids = find_centroids(mfcc, centroids, min_disteu_idx)
 
     % initialize new centroids array with 0s
-    new_centroids = zeros(size(centroids(:,:),1),2);
+    if size(centroids,2) == 2
+        new_centroids = zeros(size(centroids,1),2);
+    else
+        new_centroids = zeros(size(centroids,1),3);
+    end
 
     % Loop through all mfccs
-    for i = 1:length(min_disteu_idx)
+    for i = 1:size(centroids,1)
 
+        % Find length of data assigned to centroid
+        data_len = length(find((min_disteu_idx==i)));
+        
+        % Find sum of data assigned to centroid
+        data_sum = sum(mfcc(:,(min_disteu_idx==i)),2);
+        
         % Accumulate and average to find new centroids
-        new_centroids(min_disteu_idx(i),:) = (new_centroids(min_disteu_idx(i),:) + mfcc(:,i)')/2;
+        new_centroids(i,:) = (data_sum/data_len)';
 
     end
 
