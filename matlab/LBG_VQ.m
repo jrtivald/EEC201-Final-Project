@@ -138,7 +138,7 @@ function new_centroids = find_centroids(mfcc, centroids, min_disteu_idx)
     % initialize new centroids array with 0s
     new_centroids = zeros(size(centroids));
 
-    % Loop through all mfccs
+    % Loop through all centroids
     for i = 1:size(centroids,1)
 
         % Find length of data assigned to centroid
@@ -147,9 +147,15 @@ function new_centroids = find_centroids(mfcc, centroids, min_disteu_idx)
         % Find sum of data assigned to centroid
         data_sum = sum(mfcc(:,(min_disteu_idx==i)),2);
         
-        % Accumulate and average to find new centroids
-        new_centroids(i,:) = (data_sum/data_len)';
-
+        % Find new centroid as dimensions averaged
+        centroid_up = data_sum/data_len;
+        
+        % If no data is clustered with centroid, don't change
+        if data_len == 0
+            new_centroids(i,:) = centroids(i,:);
+        else
+            % Accumulate and average to find new centroids
+            new_centroids(i,:) = centroid_up';
+        end
     end
-
 end
