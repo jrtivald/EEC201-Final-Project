@@ -31,7 +31,7 @@ The test sounds were played, and each project attempted to match the test speake
 
 ## Speech Processing
 
-## Test 2
+### Test 2
 The training data file s1.wav was played in MATLAB using 'sound'. The sample rate of the signal is 12.5 kHz, which means 256 samples contain 20.48 ms of the signals. The signal time-domain plot is bellow:
 
 ![time-domain plot](img/test_2_1.png?raw=true)
@@ -82,7 +82,7 @@ To check whether the program is working, inspect the acoustic space (MFCC vector
 
 Now write a function that trains a VQ codebook using the LGB algorithm.
 
-## Test 6
+### Test 6
 Plot the resulting VQ codewords using the same two dimensions over the plot of in TEST 5. You should get a figure like Figure 4.
 
 ![Figure 4](img/VQ_codebook.png?raw=true)
