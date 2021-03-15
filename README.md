@@ -24,15 +24,47 @@ Human Performance
 # Speech Processing
 
 ## Test 2
-In Matlab one can play the sound file using “sound”. Record the sampling rate and compute how many milliseconds of speech are contained in a block of 256 samples? \textbf{Now plot the signal to view it in the time domain. It should be obvious that the raw data are long and may need to be normalized because of different strengths.}
+The training data file s1.wav was played in MATLAB using 'sound'. The sample rate of the signal is 12.5 kHz, which means 256 samples contain 20.48 ms of the signals. The signal time-domain plot is bellow:
 
-Use STFT to generate periodogram. Locate the region in the plot that contains most of the energy, in time (msec) and frequency (in Hz) of the input speech signal. Try different frame size: for example N = 128, 256 and 512. In each case, set the frame increment M to be about N/3.
+![time-domain plot](img/test_2_1.png?raw=true)
+
+The STFT was then calculated in MATLAB and was used to generate the spectrograms. First a frame size of 128 samples was used:
+
+![N=128 stft](img/test_2_2.png?raw=true)
+
+Then a frame size of 256 was used:
+
+![N=256 stft](img/test_2_3.png?raw=true)
+
+Lastly, a frame size of 512 samples was used:
+
+![N=512 stft](img/test_2_4.png?raw=true)
+
+In the spectrograms, the region that contains the most energy is between 200 ms and 750 ms.
 
 ## Test 3
-Plot the mel-spaced filter bank responses. Compare them with theoretical responses. Compute and plot the spectrum of a speech file before and after the mel-frequency wrapping step. Describe and explain the impact of the melfb.m or melfbown.m program.
+We used a 40 bank mel-spaced filter bank. The filter bank responses were plotted in MATLAB:
+
+![mel-spaced filter bank](img/test_3_1.png?raw=true)
+
+The spectrogram for the training signal s1.wav was then plotted. Note that the part of the signal that contains the word was isolated:
+
+![signal spectrogram](img/test_3_2.png?raw=true)
+
+The spectrum was then filtered with the mel-spaced filter bank and the output spectrum was plotted:
+
+![mel-spaced filter bank output](img/test_3_3.png?raw=true)
+
+After the signal is passed through the filter-bank, each bank contains the energy of the spectrum in the range of the filter bank. This reduces the amount of coefficients, and the new coefficients contain parts of the spectrum that are most important.
 
 ## Test 4
-Complete the “Cepstrum” step and put all pieces together into a single Matlab function, e.g., mfcc.m
+The cepstrum of the filter bank output was then calculated:
+
+![mel-spaced filter bank output](img/test_4_1.png?raw=true)
+
+A selected range of the cepstrum was then selected and normalized to determine the MFCC values.
+
+![mfcc output](img/test_4_2.png?raw=true)
 
 # Vector Quantization
 Now apply VQ-based pattern recognition technique to build speaker reference models from those vectors in the training set before identifying any sequences of acoustic vectors from unmarked speakers in the test set.
@@ -45,7 +77,7 @@ Now write a function that trains a VQ codebook using the LGB algorithm.
 ## Test 6
 Plot the resulting VQ codewords using the same two dimensions over the plot of in TEST 5. You should get a figure like Figure 4.
 
-![alt text](https://github.com/jrtivald/EEC201-Final-Project.git/raw/main/img/VQ_codebook.png?raw=true)
+![Figure 4](img/VQ_codebook.png?raw=true)
 
 # Full Test and Demonstration
 Using the programs to train and test speaker recognition on the data sets.

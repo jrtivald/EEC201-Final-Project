@@ -54,6 +54,14 @@ for i = 1:TRAIN_REC_CNT
     train_signals{i} = read_signal(file,SAMPLE_RATE,CHANNEL);
 end
 
+% % plot training data
+% figure('Name','Training Data Signals')
+% for i = 1:TRAIN_REC_CNT
+%    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+%    plot(train_signals{i})
+%    title(strcat('s',num2str(i),'.wav'))
+% end
+% 
 % % plot spectrograms of training data to visualize
 % figure('Name','Training Data Spectrograms')
 % for i = 1:TRAIN_REC_CNT
@@ -162,12 +170,14 @@ LBG_VQ(training_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, ...
 % plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
 % plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT);
 
-% % Test to see if VQ will resolve on the correct training signal.
-% for i = 1:TRAIN_REC_CNT
-%     [test_distortion, speaker_number] = LBG_VQ(training_mfcc_coeffs{i}(:,:), ...
-%         CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
-%     assert(speaker_number == i,'detected the training data incorectly')
-% end
+train_distortion = cell(1,TEST_REC_CNT);
+train_speaker_number = zeros(1,TEST_REC_CNT);
+
+% Test to see if VQ will resolve on the correct training signal.
+for i = 1:TRAIN_REC_CNT
+    [train_distortion{i}, train_speaker_number(i)] = LBG_VQ(training_mfcc_coeffs{i}, ...
+        CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
+end
 
 %% Read in testing data
 
@@ -253,8 +263,11 @@ end
 
 %% Vector Quantize the test data
 
+test_distortion = cell(1,TEST_REC_CNT);
+test_speaker_number = zeros(1,TEST_REC_CNT);
+
 for i = 1:TEST_REC_CNT
-    [test_distortion, speaker_number] = LBG_VQ(test_mfcc_coeffs{i}(:,:), ...
+    [test_distortion{i}, test_speaker_number(i)] = LBG_VQ(test_mfcc_coeffs{i}(:,:), ...
         CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
-    fprintf('Test speaker %i is train speaker %i\n',i,speaker_number);
+    fprintf('Test speaker %i is train speaker %i\n',i,test_speaker_number(i));
 end
