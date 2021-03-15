@@ -78,14 +78,29 @@ A selected range of the cepstrum was then selected and normalized to determine t
 Now apply VQ-based pattern recognition technique to build speaker reference models from those vectors in the training set before identifying any sequences of acoustic vectors from unmarked speakers in the test set.
 
 ### Test 5
-To check whether the program is working, inspect the acoustic space (MFCC vectors) in any two dimensions in a 2D plane to observe the results from different speakers. Are they in clusters?
+After calculating the MFCCs for each training file, we then plotted the framed time data over the duration of our signal choosing two or three MFCCs as our X, Y, and Z axis.  Below you will see speakers 1 and 4 plotted with MFCCs 3 and 11, and again with MFCCs 3, 8 and 11.
 
-Now write a function that trains a VQ codebook using the LGB algorithm.
+![Speaker 4 Data 2-D](img/speaker_compare_no_cent.png?raw=true)
+![Speaker 4 Data 3-D](img/speaker_compare_no_cent_3d.png?raw=true)
 
 ### Test 6
-Plot the resulting VQ codewords using the same two dimensions over the plot of in TEST 5. You should get a figure like Figure 4.
+Next we implemented the Linde Buzo Gray (LBG) Vector Quantization (VQ) method to encode our training files via a method generally referred to as k-clustering.  The main idea behind k-clustering is to generate a "codebook" of "codewords" per each speaker we want to identify. For this project, a "codebook" will be an array of centroids, and a "codeword" will be a centroid.  Each centroid will be determined through the iterative LBG-VQ algorithm which essentially does the following steps each iteration:
+- Cluster closest data points to each centroid by finding the minimum Euclidian distance.
+- Update each centroid by averaging each dimension of the data points clustered to each centroid.
+- Repeat the cluster and update process until a desired distortion change reaches a user defined threshold.
+- Split all centroids and repeat all steps until desired amount of centroids and distortion change is reached.
 
-![Figure 4](img/VQ_codebook.png?raw=true)
+NOTE: The last step is not the only way to add additional centroids, but the method we chose for this project.
+
+Below you will see the centroids which the method above converged on for speaker 4's data points. The color coding identifies which data points are clustered with whith which centroids after the final cnetroids have been determined.
+
+![Speaker 4 Data 2-D](img/speaker4_centroid.png?raw=true)
+![Speaker 4 Data 2-D](img/speaker4_centroid_3d.png?raw=true)
+
+Finally we may look at the data points of the two different speakers with the determined centroids of each speaker.
+
+![Speaker 4 Data 2-D](img/speaker_compare.png?raw=true)
+![Speaker 4 Data 3-D](img/speaker_compare_3d.png?raw=true)
 
 ## Full Test and Demonstration
 Using the programs to train and test speaker recognition on the data sets.
