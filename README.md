@@ -1,14 +1,43 @@
+<p align="center">
+  <img src="img/team_omega.png" width="1000" title="Github Logo">
+</p>
+
 # EEC-201 Final Project : Team Omega
 Authors: Igor Sheremet and Jonathan Tivald
+
 Date: March 2021
 
 # Project Overview
 
-TBD
+This project implements what is known as the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [1], which falls under the general umbrella of k-clustering, to learn and recognize human speech. The algorithm may read in training data (*.wav audio files) to generate "codebooks" (combination of "codewords") which characterize each training files Mel-Frequency Cepstral Coefficients (MFCC).  The Algorithm may then read in test data generated from the same speaker to identify which speaker the test data belongs to based on the learned "codebook."
 
 # How to run the speech recognition program
 
-TBD
+## Running Speaker Recognition
+Simply clone this repository, set ~EEC201-FINAL_PROJECT/matlab/ as your Matlab's working directory, and type "speaker_recognition" into the command line. Or open speaker_recognition.m and click "run."
+
+## Parameter Modification
+Below are some user defined parameters that may be found at the top of speaker_recognition.m (around line 28) which allows the user to easily make critical changes to the speaker recognition algorithm.
+
+### MFCC Paramters
+| Variable | Description |
+| --- | --- |
+| FRAME_SIZE_MS     | Size of each data frame in miliseconds |
+| FRAME_OVERLAP_MS  | Overlap of each data frame in miliseconds |
+| FFT_NUM_POINTS    | Length of FFT for calculating MFCCs |
+| MEL_NUM_BANKS     | Number of Mel-Frequency filter banks |
+| CEPS_START_BANK   | First filter bank to calculate cpestrum of (usually used to remove DC filter bank) |
+| CEPS_NUM_BANKS    | Number of filter banks to calculate cepstrum of |
+
+### LBG-VQ Paramters
+| Variable | Description |
+| --- | --- |
+| LBG_VQ_EPSILON        | Threshold to determine acceptably small distortion change |
+| LBG_VQ_M              | 1xS vector specifying centroid count for each speaker, where S is total count of speakers |
+| SPKR_CENTROIDS        | Speaker, denoted by integer value, to plot converged centroids with corresponding clustered data |
+| SPKR_PLT              | 1xS vector specifying which speakers to plot for comparing centroid and data in feature spaces specified by CODEBOOK_FIGS, where S may be integer values specifying 1 up to all speakers |
+| CODEBOOK_MFCC         | 1xS vector specifing which MFCCs will be part of every speaker's codebook, where S may be integer values specifying 1 to all MFCCs |
+| CODEBOOK_FIGS         | 2-D array specifying which feature spaces to plot. Each row is either a 1X2 vector (2-D plot) or 1x3 vector (3-D plot) containing integer values corresponding to the MFCC to plot |
 
 # Project Tasks
 
@@ -80,11 +109,12 @@ Now apply VQ-based pattern recognition technique to build speaker reference mode
 ### Test 5
 After calculating the MFCCs for each training file, we then plotted the framed time data over the duration of our signal choosing two or three MFCCs as our X, Y, and Z axis.  Below you will see speakers 1 and 4 plotted with MFCCs 3 and 11, and again with MFCCs 3, 8 and 11.
 
-![Speaker 4 Data 2-D](img/speaker_compare_no_cent.png?raw=true)
-![Speaker 4 Data 3-D](img/speaker_compare_no_cent_3d.png?raw=true)
-
+<p align="center">
+    <img src="img/speaker_compare_no_cent.png" width = "450" height = "315" alt = "Speaker 4 Data 2-D" />
+    <img src="img/speaker_compare_no_cent_3d.png" width = "450" height = "315" alt = "Speaker 4 Data 3-D" />
+</p>
 ### Test 6
-Next we implemented the Linde Buzo Gray (LBG) Vector Quantization (VQ) method to encode our training files via a method generally referred to as k-clustering.  The main idea behind k-clustering is to generate a "codebook" of "codewords" per each speaker we want to identify. For this project, a "codebook" will be an array of centroids, and a "codeword" will be a centroid.  Each centroid will be determined through the iterative LBG-VQ algorithm which essentially does the following steps each iteration:
+Next we LBG-VQ method to encode our training files via a method generally referred to as k-clustering.  The main idea behind k-clustering is to generate a "codebook" of "codewords" per each speaker we want to identify. For this project, a "codebook" will be an array of centroids, and a "codeword" will be a centroid.  Each centroid will be determined through the iterative LBG-VQ algorithm which essentially does the following steps each iteration:
 - Cluster closest data points to each centroid by finding the minimum Euclidian distance.
 - Update each centroid by averaging each dimension of the data points clustered to each centroid.
 - Repeat the cluster and update process until a desired distortion change reaches a user defined threshold.
@@ -94,13 +124,16 @@ NOTE: The last step is not the only way to add additional centroids, but the met
 
 Below you will see the centroids which the method above converged on for speaker 4's data points. The color coding identifies which data points are clustered with whith which centroids after the final cnetroids have been determined.
 
-![Speaker 4 Data 2-D](img/speaker4_centroid.png?raw=true)
-![Speaker 4 Data 2-D](img/speaker4_centroid_3d.png?raw=true)
-
+<p align="center">
+    <img src="img/speaker4_centroid.png" width = "450" height = "315" alt = "Speaker 4 Centroids 2-D" />
+    <img src="img/speaker4_centroid_3d.png" width = "450" height = "315" alt = "Speaker 4 Centroids 3-D" />
+</p>
 Finally we may look at the data points of the two different speakers with the determined centroids of each speaker.
 
-![Speaker 4 Data 2-D](img/speaker_compare.png?raw=true)
-![Speaker 4 Data 3-D](img/speaker_compare_3d.png?raw=true)
+<p align="center">
+    <img src="img/speaker_compare.png" width = "450" height = "315" alt = "Compare Speakers 2-D" />
+    <img src="img/speaker_compare_3d.png" width = "450" height = "315" alt = "Compare Speakers 3-D" />
+</p>
 
 ## Full Test and Demonstration
 Using the programs to train and test speaker recognition on the data sets.
@@ -113,3 +146,6 @@ Use notch filters on the voice signals to generate another test set. Test your s
 
 ### Test 9
 Test the system with other speech files you may find online. E.g. https://lionbridge.ai/datasets/best-speech-recognition-datasets-for-machine-learning/
+
+# References
+[1] Y. Linde, A. Buzo & R. Gray, “An algorithm for vector quantizer design”, IEEE Transactions on Communications, Vol.28, pp.84-95, 1980.
