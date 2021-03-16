@@ -9,7 +9,7 @@
 %
 % Date: 3/5/2021
 
-function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebook_dim, epsilon, m_cnt, ftr_space_range, train_en)
+function dist_mat = LBG_VQ(mfcc, codebook_dim, epsilon, m_cnt, ftr_space_range, train_en)
 
     % if training mode is enabled, start with initilzed codebook
     if train_en == 1
@@ -70,9 +70,7 @@ function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebook_dim, epsilon, m_cnt, ftr_s
         save('codebook.mat','centroids','min_distort_idx');
         
         % No return when training
-        spkr_dist = NaN;
-        spkr_num = NaN;
-        dist_vec = NaN;
+        dist_mat = NaN;
         
     else
         
@@ -80,24 +78,28 @@ function [dist_vec, spkr_num] = LBG_VQ(mfcc, codebook_dim, epsilon, m_cnt, ftr_s
         load('codebook.mat','centroids');
         
         % initialize distortion matrix
-        dist_vec = zeros(1,size(centroids,2));
+        dist_mat = zeros(size(mfcc,2),size(centroids,2));
+        
+        % Loop through all the different speakers
+        for i = 1:size(mfcc,2)
+
+            % Build temporary MFCC matrix of dimmensions we care about
+            tmp_mfcc = mfcc{1,i}(codebook_dim,:);
             
-        % Build temporary MFCC matrix of dimmensions we care about
-        tmp_mfcc = mfcc(codebook_dim,:);
+            % Loop through all speaker codebooks
+            for j = 1:size(centroids,2)
                 
-        % Loop through all sets of speaker centroids
-        for i = 1:size(centroids,2)
+                % Calculate the minimum distortion
+                [min_distort, min_distort_idx] = vector_cluster(tmp_mfcc,centroids{1,j});
+                dist_mat(i,j) = sum(min_distort);
                 
-            % Calculate the minimum distortion
-            [min_distort, min_distort_idx] = vector_cluster(tmp_mfcc,centroids{1,i});
-            dist_vec(1,i) = sum(min_distort)/length(min_distort);
-                
+            end
         end
         
     end
     
     %Determine the speaker
-    [spkr_dist, spkr_num] = min(dist_vec);
+    %[spkr_dist, spkr_num] = min(dist_vec);
 
 end
 

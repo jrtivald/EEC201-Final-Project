@@ -37,7 +37,12 @@ Below are some user defined parameters that may be found at the top of speaker_r
 | SPKR_CENTROIDS        | Speaker, denoted by integer value, to plot converged centroids with corresponding clustered data |
 | SPKR_PLT              | 1xS vector specifying which speakers to plot for comparing centroid and data in feature spaces specified by CODEBOOK_FIGS, where S may be integer values specifying 1 up to all speakers |
 | CODEBOOK_MFCC         | 1xS vector specifing which MFCCs will be part of every speaker's codebook, where S may be integer values specifying 1 to all MFCCs |
-| CODEBOOK_FIGS         | 2-D array specifying which feature spaces to plot. Each row is either a 1X2 vector (2-D plot) or 1x3 vector (3-D plot) containing integer values corresponding to the MFCC to plot |
+| CODEBOOK_FIGS         | 2-D array specifying which feature spaces to plot. Each row is either a 1X3 vector containing integer values corresponding to the MFCC to plot (NOTE: 3-rd value in a row may be 0 for a 2-D plot, otherwise its a positive integer for a 3-D plot) |
+
+### Speaker Prediction Parameters
+| Variable | Description |
+| --- | --- |
+| CONFIDENCE_THRESHOLD     | Threshold not to be exceeded by incorrect predictions in order to make a prediction. If threshold is exceeded, no decision is made. |
 
 # Project Tasks
 
@@ -47,16 +52,20 @@ Below are some user defined parameters that may be found at the top of speaker_r
 
 The test sounds were played, and each project attempted to match the test speaker with the training speaker. The results are summarized in the table below
 
-| TEST Audio | Jonathan | Igor |
+| Train Audio | Test-Jonathan | Test-Igor |
 | --- | --- | --- |
 | s1 | s1 | s1 |
-| s2 | s2 | s2 |
+| s2 | s6 | s2 |
 | s3 | s3 | s3 |
 | s4 | s4 | s4 |
 | s5 | s5 | s5 |
-| s6 | s6 | s6 |
-| s7 | s7 | s7 |
-| s8 | s8 | s8 |
+| s6 | s2 | s6 |
+| s7 | s8 | s7 |
+| s8 | s7 | s8 |
+| s9 | s9 | s8 |
+| s10 | s10 | s8 |
+| s11 | s11 | s8 |
+| | 64% | 0% |
 
 ## Speech Processing
 

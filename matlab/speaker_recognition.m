@@ -37,14 +37,17 @@ CEPS_NUM_BANKS   = 12;
 LBG_VQ_EPSILON      = 0.01;
 LBG_VQ_M            = repmat(4,1,TRAIN_REC_CNT);
 FEATURE_SPACE_RANGE = [-1 1];
-
 SPKR_CENTROIDS      = 5;
 SPKR_PLT            = [4 8];
 CODEBOOK_MFCC       = [1:12];
 
 % NOTE: MFCCs to plot in FIGS MUST be in CODEBOOK_MFCC
-CODEBOOK_FIGS = [[1 3];
-                 [7 9]];
+CODEBOOK_FIGS = [[1 3 0];
+                 [7 8 0];
+                 [7 9 0]];
+
+% Speaker Prediction
+CONFIDENCE_THRESHOLD = 0.75;
 
 %% Read in training data
 
@@ -130,7 +133,7 @@ end
 %     plot(train_word_signals{i});
 %     title(strcat('s',num2str(i),'.wav'))
 % end
-
+% 
 % figure('Name','Extracted Training Word Signals Spectrograms')
 % for i = 1:TRAIN_REC_CNT
 %     subplot(2,ceil(TRAIN_REC_CNT/2),i)
@@ -169,16 +172,14 @@ LBG_VQ(training_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, ...
 
 % % Plot the VQ data
 % plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
-% plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT);
-
-train_distortion = cell(1,TEST_REC_CNT);
-train_speaker_number = zeros(1,TEST_REC_CNT);
+plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 0);
+plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 1);
 
 % Test to see if VQ will resolve on the correct training signal.
-for i = 1:TRAIN_REC_CNT
-    [train_distortion{i}, train_speaker_number(i)] = LBG_VQ(training_mfcc_coeffs{i}, ...
-        CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
-end
+train_distortion = LBG_VQ(training_mfcc_coeffs,CODEBOOK_MFCC, LBG_VQ_EPSILON,...
+                            LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
+
+tmp = decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Training Signals');
 
 %% Read in testing data
 
@@ -264,11 +265,7 @@ end
 
 %% Vector Quantize the test data
 
-test_distortion = cell(1,TEST_REC_CNT);
-test_speaker_number = zeros(1,TEST_REC_CNT);
+test_distortion = LBG_VQ(test_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON,...
+                  LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
 
-for i = 1:TEST_REC_CNT
-    [test_distortion{i}, test_speaker_number(i)] = LBG_VQ(test_mfcc_coeffs{i}(:,:), ...
-        CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
-    fprintf('Test speaker %i is train speaker %i\n',i,test_speaker_number(i));
-end
+tmp = decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Testing Signals');
