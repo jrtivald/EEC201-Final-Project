@@ -16,8 +16,8 @@ close all;
 clc;
 
 % Signals parameters
-TRAIN_REC_CNT = 12;
-TEST_REC_CNT  = 8;
+TRAIN_REC_CNT = 11;
+TEST_REC_CNT  = 11;
 CHANNEL       = 1;            % Some audio files have stereo
 SAMPLE_RATE   = 12500;
 
@@ -31,19 +31,20 @@ FRAME_OVERLAP_MS = 10;
 FFT_NUM_POINTS   = 1024;
 MEL_NUM_BANKS    = 40;
 CEPS_START_BANK  = 2;
-CEPS_NUM_BANKS   = 15;
+CEPS_NUM_BANKS   = 12;
 
 % LBG VQ Parameters
 LBG_VQ_EPSILON      = 0.01;
 LBG_VQ_M            = repmat(4,1,TRAIN_REC_CNT);
 FEATURE_SPACE_RANGE = [-1 1];
+
 SPKR_CENTROIDS      = 5;
 SPKR_PLT            = [4 8];
-CODEBOOK_MFCC       = [1 3 7 8 9 11];
+CODEBOOK_MFCC       = [1:12];
 
 % NOTE: MFCCs to plot in FIGS MUST be in CODEBOOK_MFCC
 CODEBOOK_FIGS = [[1 3];
-                 [7 8]];
+                 [7 9]];
 
 %% Read in training data
 
@@ -129,8 +130,8 @@ end
 %     plot(train_word_signals{i});
 %     title(strcat('s',num2str(i),'.wav'))
 % end
-% 
-% figure('Name','Extracted Word Signals Spectrograms')
+
+% figure('Name','Extracted Training Word Signals Spectrograms')
 % for i = 1:TRAIN_REC_CNT
 %     subplot(2,ceil(TRAIN_REC_CNT/2),i)
 %     spectrogram(train_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
@@ -230,7 +231,7 @@ end
 %     plot(test_word_signals{i});
 %     title(strcat('s',num2str(i),'.wav'))
 % end
-% 
+
 % figure('Name','Extracted Test Word Signals Spectrograms')
 % for i = 1:TEST_REC_CNT
 %     subplot(2,ceil(TEST_REC_CNT/2),i)
