@@ -110,8 +110,8 @@ Now apply VQ-based pattern recognition technique to build speaker reference mode
 After calculating the MFCCs for each training file, we then plotted the framed time data over the duration of our signal choosing two or three MFCCs as our X, Y, and Z axis.  Below you will see speakers 1 and 4 plotted with MFCCs 3 and 11, and again with MFCCs 3, 8 and 11.
 
 <p align="center">
-    <img src="img/speaker_compare_no_cent.png" width = "450" height = "315" alt = "Speaker 4 Data 2-D" />
-    <img src="img/speaker_compare_no_cent_3d.png" width = "450" height = "315" alt = "Speaker 4 Data 3-D" />
+    <img src="img/speaker_compare_no_cent.png" width = "383" height = "220" alt = "Speaker 4 Data 2-D" />
+    <img src="img/speaker_compare_no_cent_3d.png" width = "383" height = "220" alt = "Speaker 4 Data 3-D" />
 </p>
 ### Test 6
 Next we LBG-VQ method to encode our training files via a method generally referred to as k-clustering.  The main idea behind k-clustering is to generate a "codebook" of "codewords" per each speaker we want to identify. For this project, a "codebook" will be an array of centroids, and a "codeword" will be a centroid.  Each centroid will be determined through the iterative LBG-VQ algorithm which essentially does the following steps each iteration:
@@ -125,14 +125,14 @@ NOTE: The last step is not the only way to add additional centroids, but the met
 Below you will see the centroids which the method above converged on for speaker 4's data points. The color coding identifies which data points are clustered with whith which centroids after the final cnetroids have been determined.
 
 <p align="center">
-    <img src="img/speaker4_centroid.png" width = "450" height = "315" alt = "Speaker 4 Centroids 2-D" />
-    <img src="img/speaker4_centroid_3d.png" width = "450" height = "315" alt = "Speaker 4 Centroids 3-D" />
+    <img src="img/speaker4_centroid.png" width = "383" height = "220" alt = "Speaker 4 Centroids 2-D" />
+    <img src="img/speaker4_centroid_3d.png" width = "383" height = "220" alt = "Speaker 4 Centroids 3-D" />
 </p>
 Finally we may look at the data points of the two different speakers with the determined centroids of each speaker.
 
 <p align="center">
-    <img src="img/speaker_compare.png" width = "450" height = "315" alt = "Compare Speakers 2-D" />
-    <img src="img/speaker_compare_3d.png" width = "450" height = "315" alt = "Compare Speakers 3-D" />
+    <img src="img/speaker_compare.png" width = "383" height = "220" alt = "Compare Speakers 2-D" />
+    <img src="img/speaker_compare_3d.png" width = "383" height = "220" alt = "Compare Speakers 3-D" />
 </p>
 
 ## Full Test and Demonstration
