@@ -11,7 +11,71 @@ Date: March 2021
 
 This project implements what is known as the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [1], which falls under the general umbrella of k-clustering, to learn and recognize human speech. The algorithm may read in training data (*.wav audio files) to generate "codebooks" (combination of "codewords") which characterize each training files Mel-Frequency Cepstral Coefficients (MFCC).  The Algorithm may then read in test data generated from the same speaker to identify which speaker the test data belongs to based on the learned "codebook."
 
-# How to run the speech recognition program
+# Speech Feature Extraction
+
+From project description:
+Using digital signal processing (DSP) tools can extract a set of features for further analysis.
+The speech signal is a slowly timed varying signal (it is called quasi-stationary). When examined over a
+sufficiently short period of time (between 5 and 100 msec), its characteristics are mostly stationary. Over
+long duration (> 1/5 seconds), their signal characteristic variation would reflect the different sounds being
+spoken. Therefore, short-time spectral analysis is the most common way to characterize the speech signal.
+A wide range of possibilities exist for parametrically representing the speech signal for the speaker
+recognition task, such as Linear Prediction Coding (LPC), Mel-Frequency Cepstrum Coefficients (MFCC),
+and others. MFCC is perhaps the best known and most popular, and will be suggested for this project.
+MFCC’s are based on the known variation of the human ear’s critical bandwidths with frequency, filters
+spaced linearly at low frequencies and logarithmically at high frequencies have been used to capture the
+phonetically important characteristics of speech. This is expressed in the mel-frequency scale, which is a
+linear frequency spacing below 1000 Hz and a logarithmic spacing above 1000 Hz. One nice discussion
+can be found at https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html
+
+TODO: write a short intoruction for speech feature extraction section
+
+## Signal Pre-Processing
+
+TODO: write up a description of the pre-processing we do on the signal such as pre-emphasis filtering, detection of active word part of signal, normalization/auto-gain
+
+## Mel-Frequency Cepstral Coefficients
+
+TODO: write up the a description of how we implemented MFCC
+
+# Feature Matching
+
+From project description:
+Once the features are extracted, the problem of speaker recognition belongs to a much broader topic known
+as pattern recognition. Since the classification procedure here is applied on extracted features, it can be also
+referred to as feature matching. Since the set of patterns that the individual classes of which are already
+known, then one has a problem in supervised learning.
+
+TODO: write up a into for feature matching section
+
+## Vector Quantization
+
+TODO: write up how we implemented VQ with LBG algorithm
+
+## Speaker Recognition
+
+TODO: write up how we implemented speaker detection
+
+
+# Parameter Tunning
+
+## Word Detection Parameters
+
+TBD
+
+## MFCC Parameters
+
+TBD
+
+## VQ Parameters
+
+TBD
+
+## Speaker Prediction Parameters
+
+TBD
+
+# How to run the speech recognition MATLAB program
 
 ## Running Speaker Recognition
 Simply clone this repository, set ~EEC201-FINAL_PROJECT/matlab/ as your Matlab's working directory, and type "speaker_recognition" into the command line. Or open speaker_recognition.m and click "run."
