@@ -46,16 +46,32 @@ as pattern recognition. Since the classification procedure here is applied on ex
 referred to as feature matching. Since the set of patterns that the individual classes of which are already
 known, then one has a problem in supervised learning.
 
-TODO: write up a into for feature matching section
+After the MFCCs of an input signal has been calculated, we then want to "learn" input signals such that we may match future input signal generated from the same speaker. This may be accomplished by use of the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [1], which falls under the general umbrella of k-clustering, to learn and recognize human speech.
 
 ## Vector Quantization
 
-TODO: write up how we implemented VQ with LBG algorithm
+Vector quantization, simply stated, is the process of modeling probability distribution functions by the distribtuion of training vectors.  This process includes evaluating data vectors in a multi-dimensional feature space.  When training a VQ system, all the training data vector in the feature space are reduced to a few key areas within the feature space which are referred to as codewords or centroids.  Each training vector will have a user defined number of codewords, and all codewords combined together are referred to as the codebook.  The process of evaluating a training vector's codebook is accomplished by using the LBG algorithm shown below. [2]
+
+![LBG_BD](img/lbg_vq_diagram.PNG?raw=true)
+
+Our implmentation of the above diagram allows the user to specify a centroid(codeword) count for each speaker's training vector. However, because of the nature of the LBG algorithm, each speakers codebook may only have a power of 2 centroids due to centroid splitting. Clustering and distortion were both achieved by use of the Euclidean distance between centroids and vector data.  This measurement is also referred to as the Holder norm and is shown below.[1]
+
+![DISTEU](img/distortion.PNG?raw=true)
+
+This calculation was used for clustering by finding which centroids returned the smallest Euclidean distance for each data point, and this calculation is used to find the total distortion by adding up all the minimum Euclidean distances.  After each iteration, the current total distortion is compared to previous iteration's total distortion.  When the change in total distortion is less than a user defined threshold, epsilon, then the algorithm has found the best centroids which map the vector data for the current amount of centroids.  At this point, the LBG algorithm will either add more cnetroids by splitting all current centroids, or finsih if the current centroid count is the desired amount.
 
 ## Speaker Recognition
 
-TODO: write up how we implemented speaker detection
+The speaker recognition process is very similar to what was described in the Vector Quantizaton section.  The main idea for speaker recognition is to cluster and calculate the total distortion of the test vector data for each codebook that was trained.  Whichever codebook provides the least amount of distortion is suppsoed to be the speaker who generated the test vector data.
 
+However, there is a little more to the story of recognizing a speaker. There may be an event where two codebooks provide similar total distortions, but also minimum total distortions compared to the rest of the codebooks.  Therfore we need to make our recognition more roboust by determining some level of confidence that the codebook which provided the minimum total distortion is the speaker who generated the test vector data.
+
+We implemented the following idea:
+- First, normalize all the total distortions generated from each codebook for one test vector between 0 and 1
+- Next, take the mean of all total distortions, disregard all codebooks which provide a total distortion greater than the mean
+- Last, Compare all codebooks which are less than the mean, but not the minimum, to a user defined thrshold
+
+If the other potential codebook's total distortion is less than the user defined threshold, then we determine the text vector speaker is not recognized.
 
 # Parameter Tunning
 
@@ -69,11 +85,31 @@ TBD
 
 ## VQ Parameters
 
-TBD
+The main parameters we tuned in our LBG-VQ algorithm were the centroid MFCC dimensions, and the user centroid count.  Selecting the centroid dimensions was completed by visual observation of the MFCCs which trained the algorithm's codebooks.
+
+![mfcc output](img/test_4_2.png?raw=true)
+
+Taking a look at the plot above, clearly there is a lot of spectral activity in MFCCs 1-3 as well as some spectral activity in MFCC 4 and 11. We compared these graphs for each codebook to try and determine MFCCs which will generate unique centroids for each codebook. Upon some trial and error, we landed on a combination which gave us the most accurate results.
+
+Choosing each codebook's centroid count was done in a similar vein. By plotting the trainig vector data, we were able qualitatively find an optimal amount of centroids which achieved the best accuracy results in our tesitng.
+
+![speaker data clusters](img/speaker_compare_no_cent.png?raw=true)
+
+Looking at the figure above, focusing on speaker 4, it is clear there are clusters of data in the bottom left, to the right and the upper middle section of the graph.  As we may only have a power of 2 centroids, this will result in 4 centroids for speaker 4 as shown below.
+
+![speaker data centroids](img/speaker4_centroid.png?raw=true)
 
 ## Speaker Prediction Parameters
 
-TBD
+Speaker prediciton parameters were tuned similarly to the VQ parameters.  Each test vector's total distortion with each codebook was plotted as shown below.
+
+![speaker data centroids](img/testing_prediction.PNG?raw=true)
+
+Here we are easily visualizing the total distortion of all test vectors with all codebooks to understand how the minimum total distortion codebook compares to the rest of the codebooks.  This qualitative view of the data helped us understand where we want to set our recognition threshold to correctly predict codebooks yet prevent false positives (defining a top end of the threshold). Furthermore, we also needed to look at how the training vector's total distortions looked such that we didn't have inconclusive results which should have been conclusive (defining a bottom end of the threshold).
+
+![speaker data centroids](img/training_prediction.PNG?raw=true)
+
+Looking at the training vector's total distortion, as shown above, also helped feedback on how well our VQ parameters are tuned.
 
 # How to run the speech recognition MATLAB program
 
@@ -224,3 +260,5 @@ Test the system with other speech files you may find online. E.g. https://lionbr
 
 # References
 [1] Y. Linde, A. Buzo & R. Gray, “An algorithm for vector quantizer design”, IEEE Transactions on Communications, Vol.28, pp.84-95, 1980.
+
+[2] Z. Ding, “Speaker Recognition System 2021”, University of California Davis, EEC-201, 2021
