@@ -59,6 +59,8 @@ function status = plot_spkr_centroids(mfcc, codebook_mfcc, codebook_figs, spkr_p
             legend
             xlabel(strcat('MFCC',num2str(codebook_figs(i,1))))
             ylabel(strcat('MFCC',num2str(codebook_figs(i,2))))
+            axis([-1 1 -1 1])
+            grid on
         else
 
             % 3-D graph
@@ -91,6 +93,7 @@ function status = plot_spkr_centroids(mfcc, codebook_mfcc, codebook_figs, spkr_p
             xlabel(strcat('MFCC',num2str(codebook_figs(i,1))))
             ylabel(strcat('MFCC',num2str(codebook_figs(i,2))))
             zlabel(strcat('MFCC',num2str(codebook_figs(i,3))))
+            axis([-1 1 -1 1 -1 1])
         end
     end
 

@@ -37,15 +37,15 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
     % select desired cepstrum banks
     ceps_sel = ceps(ceps_start_bank:ceps_start_bank+ceps_num_banks-1,:);
     
-    % mean normilazation
-    ceps_fram_mean_normalized = ceps_sel - mean(ceps_sel);
+    % mean normalization for each coefficient
+    ceps_sel_mean_normalized = ceps_sel - mean(ceps_sel,2);
     
-    % normalize range to [-1:1]
+    % normalize range to [-1:1] for each coefficient
     ceps_frame_norm = zeros(ceps_num_banks,1);
     for i = 1:ceps_num_banks
-        ceps_frame_norm(i) = norm(ceps_fram_mean_normalized(i,:),'Inf');
+        ceps_frame_norm(i) = norm(ceps_sel_mean_normalized(i,:),'Inf');
     end
-    ceps_normalized = ceps_fram_mean_normalized ./ ceps_frame_norm;
+    ceps_normalized = ceps_sel_mean_normalized ./ ceps_frame_norm;
     
     % Output the MFCC coefficients
     mfcc_coeffs = ceps_normalized;

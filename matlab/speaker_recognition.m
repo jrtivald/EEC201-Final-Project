@@ -16,14 +16,14 @@ close all;
 clc;
 
 % Signals parameters
-TRAIN_REC_CNT = 11;
-TEST_REC_CNT  = 11;
+TRAIN_REC_CNT = 10;
+TEST_REC_CNT  = 13;
 CHANNEL       = 1;            % Some audio files have stereo
 SAMPLE_RATE   = 12500;
 
 % Word Detection Parameters
 WORD_DETECT_THRESH_DB = -62;
-WORD_LENGTH_MS        = 550;
+WORD_LENGTH_MS        = 500;
 
 % MFCC parameters
 FRAME_SIZE_MS    = 20;
@@ -35,19 +35,22 @@ CEPS_NUM_BANKS   = 12;
 
 % LBG VQ Parameters
 LBG_VQ_EPSILON      = 0.01;
-LBG_VQ_M            = repmat(4,1,TRAIN_REC_CNT);
+LBG_VQ_M            = repmat(8,1,TRAIN_REC_CNT);
 FEATURE_SPACE_RANGE = [-1 1];
 SPKR_CENTROIDS      = 5;
-SPKR_PLT            = [4 8];
-CODEBOOK_MFCC       = [1:12];
+SPKR_PLT            = [7 6];
+CODEBOOK_MFCC       = 1:12;
 
 % NOTE: MFCCs to plot in FIGS MUST be in CODEBOOK_MFCC
-CODEBOOK_FIGS = [[1 3 0];
-                 [7 8 0];
-                 [7 9 0]];
+CODEBOOK_FIGS = [[1 2];
+                 [3 4];
+                 [5 6]
+                 [7 8]
+                 [9 10]
+                 [11 12]];
 
 % Speaker Prediction
-CONFIDENCE_THRESHOLD = 0.75;
+CONFIDENCE_THRESHOLD = 0.5;
 
 %% Read in training data
 
@@ -152,17 +155,17 @@ for i = 1:TRAIN_REC_CNT
         CEPS_START_BANK, CEPS_NUM_BANKS);
 end
 
-% % plot MFCC coefficients
-% figure('Name','MFCCs')
-% for i = 1:TRAIN_REC_CNT
-%    subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%    imagesc(training_mfcc_coeffs{i}')
-%    colorbar
-%    axis xy
-%    title(strcat('MFCC s',num2str(i),'.wav'))
-%    xlabel('Coeff. #')
-%    ylabel('Frame #')
-% end
+% plot MFCC coefficients
+figure('Name','Training MFCCs')
+for i = 1:TRAIN_REC_CNT
+   subplot(2,ceil(TRAIN_REC_CNT/2),i)
+   imagesc(training_mfcc_coeffs{i}')
+   colorbar
+   axis xy
+   title(strcat('MFCC s',num2str(i),'.wav'))
+   xlabel('Coeff. #')
+   ylabel('Frame #')
+end
 
 %% Vector Quantize the training data for matching the test data
 
@@ -170,16 +173,16 @@ end
 LBG_VQ(training_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, ...
     FEATURE_SPACE_RANGE, 1);
 
-% % Plot the VQ data
-% plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
-plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 0);
-plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 1);
+% Plot the VQ data
+plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
+%plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 0);
+%plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 1);
 
 % Test to see if VQ will resolve on the correct training signal.
 train_distortion = LBG_VQ(training_mfcc_coeffs,CODEBOOK_MFCC, LBG_VQ_EPSILON,...
                             LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
 
-tmp = decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Training Signals');
+decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Training Signals');
 
 %% Read in testing data
 
@@ -251,21 +254,21 @@ for i = 1:TEST_REC_CNT
         CEPS_START_BANK, CEPS_NUM_BANKS);
 end
 
-% % plot MFCC coefficients
-% figure('Name','Test MFCCs')
-% for i = 1:TEST_REC_CNT
-%    subplot(2,ceil(TEST_REC_CNT/2),i)
-%    imagesc(test_mfcc_coeffs{i}')
-%    colorbar
-%    axis xy
-%    title(strcat('MFCC s',num2str(i),'.wav'))
-%    xlabel('Coeff. #')
-%    ylabel('Frame #')
-% end
+% plot MFCC coefficients
+figure('Name','Test MFCCs')
+for i = 1:TEST_REC_CNT
+   subplot(2,ceil(TEST_REC_CNT/2),i)
+   imagesc(test_mfcc_coeffs{i}')
+   colorbar
+   axis xy
+   title(strcat('MFCC s',num2str(i),'.wav'))
+   xlabel('Coeff. #')
+   ylabel('Frame #')
+end
 
 %% Vector Quantize the test data
 
 test_distortion = LBG_VQ(test_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON,...
                   LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
 
-tmp = decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Testing Signals');
+decide_spkr(test_distortion,CONFIDENCE_THRESHOLD,'Testing Signals');
