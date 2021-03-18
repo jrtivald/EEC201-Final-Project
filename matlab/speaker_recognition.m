@@ -50,7 +50,7 @@ CODEBOOK_FIGS = [[1 2];
                  [11 12]];
 
 % Speaker Prediction
-CONFIDENCE_THRESHOLD = 0.5;
+PREDICTION_THRESHOLD = 0.45;
 
 %% Read in training data
 
@@ -182,7 +182,7 @@ plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CEN
 train_distortion = LBG_VQ(training_mfcc_coeffs,CODEBOOK_MFCC, LBG_VQ_EPSILON,...
                             LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
 
-decide_spkr(train_distortion,CONFIDENCE_THRESHOLD,'Training Signals');
+decide_spkr(train_distortion,PREDICTION_THRESHOLD,'Training Signals');
 
 %% Read in testing data
 
@@ -271,4 +271,4 @@ end
 test_distortion = LBG_VQ(test_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON,...
                   LBG_VQ_M, FEATURE_SPACE_RANGE, 0);
 
-decide_spkr(test_distortion,CONFIDENCE_THRESHOLD,'Testing Signals');
+decide_spkr(test_distortion,PREDICTION_THRESHOLD,'Testing Signals');
