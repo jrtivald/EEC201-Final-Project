@@ -250,10 +250,10 @@ Finally we may look at the data points of the two different speakers with the de
 Using the programs to train and test speaker recognition on the data sets.
 
 ### Test 7
-Record the results. What is recognition rate our system can perform? Compare this with human performance. Experiment and find the reason if high error rate persists. Record more voices of yourself and your teammates/friend. Each new speaker can provide one speech file for training and one for testing. **Record the results.**
+With sufficient Signal to Noise Ratio (SNR), our system is able to easily identify all 11 test files.  Only until the SNR of our test file is 12dB or lower do we see a degredation in our system, where our system was 81% accurate rather than 100%.
 
 ### Test 8
-Use notch filters on the voice signals to generate another test set. Test your system on the accuracy after voice signals have passed different notch filters that may have suppressed distinct features of the original voice signal. Report the robustness of your system.
+We passed our signals through multiple notch filters corresponding to different Mel-Frequency filter banks (1 notch filter at a time), and this did not affect the accuracy of our system.  We maintained 100% accuracy for all of the 11 test files.
 
 ### Test 9
 Test the system with other speech files you may find online. E.g. https://lionbridge.ai/datasets/best-speech-recognition-datasets-for-machine-learning/
