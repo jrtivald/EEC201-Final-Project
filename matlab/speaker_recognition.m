@@ -18,7 +18,7 @@ clc;
 % Signals parameters
 TRAIN_DIR_PATH = '../data/Training_Data';
 TRAIN_REC_CNT  = 8;
-TEST_DIR_PATH  = '../data/Test_Data';
+TEST_DIR_PATH  = '../data/Test_Data_18_db_snr';
 TEST_REC_CNT   = 11;
 CHANNEL        = 1;            % Some audio files have stereo
 SAMPLE_RATE    = 12500;
@@ -62,13 +62,13 @@ for i = 1:TRAIN_REC_CNT
         train_dir(i).name),SAMPLE_RATE,CHANNEL);
 end
 
-% plot training data
-figure('Name','Training Data Signals')
-for i = 1:TRAIN_REC_CNT
-   subplot(2,ceil(TRAIN_REC_CNT/2),i)
-   plot(train_signals{i})
-   title(strcat('s',num2str(i),'.wav'))
-end
+% % plot training data
+% figure('Name','Training Data Signals')
+% for i = 1:TRAIN_REC_CNT
+%    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+%    plot(train_signals{i})
+%    title(strcat('s',num2str(i),'.wav'))
+% end
 % 
 % % plot spectrograms of training data to visualize
 % figure('Name','Training Data Spectrograms')

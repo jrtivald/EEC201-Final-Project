@@ -9,6 +9,10 @@
 %
 % Date: 3/5/2021
 
+clear;
+close all;
+clc;
+
 % Parameters
 TEST_DIR_PATH    = '../data/Test_Data';
 TEST_REC_CNT     = 11;
@@ -20,7 +24,7 @@ MEL_NUM_BANKS    = 40;
 NOTCH_FILES      = [2];    % Mel filter index to notch out
 
 % Noise Paramters
-NOISE_FILES      = [30];    % SNR in DB of output signal
+NOISE_FILES      = [18 21 24 27 30];    % SNR in DB of output signal
 
 %% Read in a testing file
 
