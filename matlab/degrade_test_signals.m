@@ -10,6 +10,7 @@
 % Date: 3/5/2021
 
 % Parameters
+TEST_DIR_PATH    = '../data/Test_Data';
 TEST_REC_CNT     = 11;
 MAX_LEN          = 30000;
 CHANNEL          = 1;            % Some audio files have stereo
@@ -19,15 +20,18 @@ MEL_NUM_BANKS    = 40;
 NOTCH_FILES      = [2];    % Mel filter index to notch out
 
 % Noise Paramters
-NOISE_FILES      = [10 19 22];    % SNR in DB of output signal
+NOISE_FILES      = [30];    % SNR in DB of output signal
 
 %% Read in a testing file
+
+test_dir = dir(strcat(TEST_DIR_PATH,'/*.wav'));
+
 test_signal = zeros([TEST_REC_CNT,MAX_LEN]);
 test_fs = zeros([TEST_REC_CNT,1]);
 test_length = zeros([TEST_REC_CNT,1]);
 
 for i = 1:TEST_REC_CNT
-    file = strcat('../data/Test_Data/s',num2str(i),'.wav');
+    file = strcat(test_dir(i).folder,'/',test_dir(i).name);
     [tmp_wav, test_fs(i)] = audioread(file);
     test_length(i) = length(tmp_wav);
     
@@ -64,16 +68,16 @@ for i = 1:TEST_REC_CNT
         notch_sound = ifft(notch_fft);
 
         % Save new sound file
-        location = strcat('../data/Test_Data_',num2str(MEL_NUM_BANKS),...
+        location = strcat(test_dir(i).folder,'_',num2str(MEL_NUM_BANKS),...
                 '_mel_',num2str(NOTCH_FILES(j)),'_notch');
         
         if ~exist(location, 'dir')
             mkdir(location);
         end
         
-        filename = strcat(location,'/s',num2str(i),'.wav');
+        filename = strcat(location,'/',test_dir(i).name);
         
-        disp(strcat('Saving: ',location,filename));
+        disp(strcat('Saving: ',filename));
         
         audiowrite(filename,real(notch_sound(1:test_length(i))),test_fs(i));
     end
@@ -88,16 +92,16 @@ for i = 1:TEST_REC_CNT
         out = awgn(test_signal(i,:),NOISE_FILES(j),'measured');
 
         % Save new sound file
-        location = strcat('../data/Test_Data_',...
+        location = strcat(test_dir(i).folder,'_',...
                         num2str(NOISE_FILES(j)),'_dB_snr');
         
         if ~exist(location, 'dir')
             mkdir(location);
         end
         
-        filename = strcat(location,'/s',num2str(i),'.wav');
+        filename = strcat(location,'/',test_dir(i).name);
         
-        disp(strcat('Saving: ',location,filename));
+        disp(strcat('Saving: ',filename));
         
         audiowrite(filename,out(1:test_length(i)),test_fs(i));
     end

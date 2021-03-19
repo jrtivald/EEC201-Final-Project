@@ -11,7 +11,10 @@ function y = pre_emph(x)
 %   y - output signal after it is filtered
 
 % pre-emphasis filter
-y = [x(1),x(2:end) - x(1:end-1)];
+%y = [x(1),x(2:end) - x(1:end-1)];
+% h = [1 0 -1];
+% y = conv(x,h,'same');
+y = x - mean(x);
 
 end
 

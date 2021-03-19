@@ -16,18 +16,20 @@ close all;
 clc;
 
 % Signals parameters
-TRAIN_REC_CNT = 10;
-TEST_REC_CNT  = 13;
-CHANNEL       = 1;            % Some audio files have stereo
-SAMPLE_RATE   = 12500;
+TRAIN_DIR_PATH = '../data/Training_Data';
+TRAIN_REC_CNT  = 8;
+TEST_DIR_PATH  = '../data/Test_Data';
+TEST_REC_CNT   = 11;
+CHANNEL        = 1;            % Some audio files have stereo
+SAMPLE_RATE    = 12500;
 
 % Word Detection Parameters
-WORD_DETECT_THRESH_DB = -62;
+WORD_DETECT_THRESH_DB = -45;
 WORD_LENGTH_MS        = 500;
 
 % MFCC parameters
-FRAME_SIZE_MS    = 20;
-FRAME_OVERLAP_MS = 10;
+FRAME_SIZE_MS    = 25;
+FRAME_OVERLAP_MS = 15;
 FFT_NUM_POINTS   = 1024;
 MEL_NUM_BANKS    = 40;
 CEPS_START_BANK  = 2;
@@ -37,37 +39,36 @@ CEPS_NUM_BANKS   = 12;
 LBG_VQ_EPSILON      = 0.01;
 LBG_VQ_M            = repmat(8,1,TRAIN_REC_CNT);
 FEATURE_SPACE_RANGE = [-1 1];
-SPKR_CENTROIDS      = 5;
+SPKR_CENTROIDS      = 1;
 SPKR_PLT            = [7 6];
 CODEBOOK_MFCC       = 1:12;
 
 % NOTE: MFCCs to plot in FIGS MUST be in CODEBOOK_MFCC
-CODEBOOK_FIGS = [[1 2];
-                 [3 4];
-                 [5 6]
-                 [7 8]
-                 [9 10]
-                 [11 12]];
+CODEBOOK_FIGS = [[ 1  2  3];
+                 [ 4  5  6];
+                 [ 7  8  9]
+                 [10 11 12]];
 
 % Speaker Prediction
 PREDICTION_THRESHOLD = 0.45;
 
 %% Read in training data
 
-train_signals = cell(1,TRAIN_REC_CNT);
+train_dir = dir(strcat(TRAIN_DIR_PATH,'/*.wav'));
 
+train_signals = cell(1,TRAIN_REC_CNT);
 for i = 1:TRAIN_REC_CNT
-    file = strcat('../data/Training_Data/s',num2str(i),'.wav');
-    train_signals{i} = read_signal(file,SAMPLE_RATE,CHANNEL);
+    train_signals{i} = read_signal(strcat(train_dir(i).folder,'/',...
+        train_dir(i).name),SAMPLE_RATE,CHANNEL);
 end
 
-% % plot training data
-% figure('Name','Training Data Signals')
-% for i = 1:TRAIN_REC_CNT
-%    subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%    plot(train_signals{i})
-%    title(strcat('s',num2str(i),'.wav'))
-% end
+% plot training data
+figure('Name','Training Data Signals')
+for i = 1:TRAIN_REC_CNT
+   subplot(2,ceil(TRAIN_REC_CNT/2),i)
+   plot(train_signals{i})
+   title(strcat('s',num2str(i),'.wav'))
+end
 % 
 % % plot spectrograms of training data to visualize
 % figure('Name','Training Data Spectrograms')
@@ -78,30 +79,21 @@ end
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
-%% run signals through pre-emphasis filter
+%% do mean normalization on signals to remove DC offsets
 
-train_signals_preemph = cell(1,TRAIN_REC_CNT);
+train_signals_mean_norm = cell(1,TRAIN_REC_CNT);
 
 for i = 1:TRAIN_REC_CNT
-   train_signals_preemph{i} = pre_emph(train_signals{i}); 
+   train_signals_mean_norm{i} = train_signals{i} - mean(train_signals{i}); 
 end
 
-% % plot filtered signals
-% figure('Name','Pre-Emphasis Filtered Training Data Spectrograms')
-% for i = 1:TRAIN_REC_CNT
-%     subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%     spectrogram(train_signals_preemph{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-%     title(strcat('s',num2str(i),'.wav'))
-% end
+%% scale signal amplitudes to [-1:1] range (ie auto. gain to full scale)
 
-%% normalize signal amplitudes to [-1:1] range (ie auto. gain to full scale)
-
-train_signals_normalized = cell(1,TRAIN_REC_CNT);
+train_signals_scaled = cell(1,TRAIN_REC_CNT);
 
 for i = 1:TRAIN_REC_CNT
-    train_signals_normalized{i} = train_signals_preemph{i} ./ norm(...
-        train_signals_preemph{i},'Inf');
+    train_signals_scaled{i} = train_signals_mean_norm{i} ./ norm(...
+        train_signals_mean_norm{i},'Inf');
 end
 
 % % plot normalized signals
@@ -111,21 +103,13 @@ end
 %     plot(train_signals_normalized{i});
 %     title(strcat('s',num2str(i),'.wav'))
 % end
-% 
-% figure('Name','Normalized Training Data Spectrograms')
-% for i = 1:TRAIN_REC_CNT
-%     subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%     spectrogram(train_signals_normalized{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-%     title(strcat('s',num2str(i),'.wav'))
-% end
 
-%% extract word envelopes from signals
+%% extract word segments from signals
 
 train_word_signals = cell(1,TRAIN_REC_CNT);
 
 for i = 1:TRAIN_REC_CNT
-    train_word_signals{i} = word_extract(train_signals_normalized{i},...
+    train_word_signals{i} = word_extract(train_signals_scaled{i},...
         SAMPLE_RATE,WORD_DETECT_THRESH_DB,WORD_LENGTH_MS);
 end
 
@@ -136,14 +120,14 @@ end
 %     plot(train_word_signals{i});
 %     title(strcat('s',num2str(i),'.wav'))
 % end
-% 
-% figure('Name','Extracted Training Word Signals Spectrograms')
-% for i = 1:TRAIN_REC_CNT
-%     subplot(2,ceil(TRAIN_REC_CNT/2),i)
-%     spectrogram(train_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-%     title(strcat('s',num2str(i),'.wav'))
-% end
+
+figure('Name','Extracted Training Word Signals Spectrograms')
+for i = 1:TRAIN_REC_CNT
+    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+    spectrogram(train_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
+        ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
+    title(strcat('s',num2str(i),'.wav'))
+end
 
 %% Calculate the Mel-Frequency Cepstrum Coefficients
 
@@ -174,7 +158,7 @@ LBG_VQ(training_mfcc_coeffs, CODEBOOK_MFCC, LBG_VQ_EPSILON, LBG_VQ_M, ...
     FEATURE_SPACE_RANGE, 1);
 
 % Plot the VQ data
-plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
+%plot_spkr_centroids(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_CENTROIDS);
 %plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 0);
 %plot_diff_spkrs(training_mfcc_coeffs, CODEBOOK_MFCC, CODEBOOK_FIGS, SPKR_PLT, 1);
 
@@ -186,11 +170,12 @@ decide_spkr(train_distortion,PREDICTION_THRESHOLD,'Training Signals');
 
 %% Read in testing data
 
-test_signals = cell(1,TEST_REC_CNT);
+test_dir = dir(strcat(TEST_DIR_PATH,'/*.wav'));
 
+test_signals = cell(1,TEST_REC_CNT);
 for i = 1:TEST_REC_CNT
-    file = strcat('../data/Test_Data/s',num2str(i),'.wav'); 
-    test_signals{i} = read_signal(file,SAMPLE_RATE,CHANNEL);
+    test_signals{i} = read_signal(strcat(test_dir(i).folder,'/',...
+        test_dir(i).name),SAMPLE_RATE,CHANNEL);
 end
 
 % % plot spectrograms of test data to visualize
@@ -236,13 +221,13 @@ end
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
-% figure('Name','Extracted Test Word Signals Spectrograms')
-% for i = 1:TEST_REC_CNT
-%     subplot(2,ceil(TEST_REC_CNT/2),i)
-%     spectrogram(test_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-%     title(strcat('s',num2str(i),'.wav'))
-% end
+figure('Name','Extracted Test Word Signals Spectrograms')
+for i = 1:TEST_REC_CNT
+    subplot(2,ceil(TEST_REC_CNT/2),i)
+    spectrogram(test_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
+        ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
+    title(strcat('s',num2str(i),'.wav'))
+end
 
 %% Calculate MFCC
 
