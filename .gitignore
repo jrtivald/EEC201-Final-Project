@@ -22,3 +22,7 @@
 
 # report files:
 !img/
+
+# Video Recording
+!video/
+!*.mp4
