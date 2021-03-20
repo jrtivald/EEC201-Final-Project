@@ -9,7 +9,7 @@
 % Date: 2/26/2021
 
 function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
-    mel_num_banks, ceps_start_bank, ceps_num_banks, gen_plots)
+    mel_num_banks, ceps_start_coeff, ceps_num_coeff, gen_plots)
 
     % convert frame specs from mS to samples
     frm_sz_smpls = ceil(frm_sz_ms/1000*fs);
@@ -35,14 +35,17 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
     ceps = dct(mel_log);
     
     % select desired cepstrum banks
-    ceps_sel = ceps(ceps_start_bank:ceps_start_bank+ceps_num_banks-1,:);
+    ceps_sel = ceps(ceps_start_coeff:ceps_start_coeff+ceps_num_coeff-1,:);
     
-    % normalize range to [-1:1] (inf. norm)
-    ceps_frame_norm = zeros(1,numel(spec_time));
-    for i = 1:numel(spec_time)
-        ceps_frame_norm(i) = norm(ceps_sel(:,i),'Inf');
+    % mean normalization for each coefficient
+    ceps_sel_mean_normalized = ceps_sel - mean(ceps_sel,2);
+    
+    % normalize range to [-1:1] for each coefficient
+    ceps_frame_norm = zeros(ceps_num_coeff,1);
+    for i = 1:ceps_num_coeff
+        ceps_frame_norm(i) = norm(ceps_sel_mean_normalized(i,:),'Inf');
     end
-    ceps_normalized = ceps_sel ./ ceps_frame_norm;
+    ceps_normalized = ceps_sel_mean_normalized ./ ceps_frame_norm;
     
     % Output the MFCC coefficients
     mfcc_coeffs = ceps_normalized;
@@ -97,7 +100,7 @@ function mfcc_coeffs = mfcc(xn, fs, frm_sz_ms, frm_ovr_ms, fft_N, ...
         
         % plot MFCC coefficients
         figure('Name','MFCC Coefficients')
-        imagesc(0:ceps_num_banks-1,spec_time,mfcc_coeffs')
+        imagesc(0:ceps_num_coeff-1,spec_time,mfcc_coeffs')
         colorbar
         axis xy
         title('MFCC Coefficients')
