@@ -116,7 +116,7 @@ Since there is a variation to how each speaker in the data sets talks, the STFT 
 
 The number of mel-spaced filter banks determines the resolution of the spectral components after we filter the signals through the filter banks. A good value optimizes the spectral resolution and does not have excessive banks that are redundant. After trying different values, we found that using **40 banks** gave us a good spectral resolution and worked well with our data sets.
 
-Since most of the energy is contained in a few of the cepstrum coefficients, only a selected range is used for the MFCC output. We found that the signals had similar values for the first coefficient, so we used did not use the first coefficient for the MFCC output. Aditionaly, we found that most of the energy was contained in the first 14 bins. So we used cepstrum coefficients **2-12** for the MFCC output, and the parameter worked well with our data sets.
+Since most of the energy is contained in a few of the cepstrum coefficients, only a selected range is used for the MFCC output. We found that the signals had similar values for the first coefficient, so we used did not use the first coefficient for the MFCC output. Additionally, we found that most of the energy was contained in the first 14 bins. So we used cepstrum coefficients **2-12** for the MFCC output, and the parameter worked well with our data sets.
 
 ## VQ Parameters
 
@@ -126,7 +126,7 @@ The main parameters we tuned in our LBG-VQ algorithm were the centroid MFCC dime
 
 Taking a look at the plot above, clearly there is a lot of spectral activity in MFCCs 1-3 as well as some spectral activity in MFCC 4 and 11. We compared these graphs for each codebook to try and determine MFCCs which will generate unique centroids for each codebook. Upon some trial and error, we landed on a combination which gave us the most accurate results.
 
-Choosing each codebook's centroid count was done in a similar vein. By plotting the trainig vector data, we were able qualitatively find an optimal amount of centroids which achieved the best accuracy results in our tesitng.
+Choosing each codebook's centroid count was done in a similar vein. By plotting the training vector data, we were able qualitatively find an optimal amount of centroids which achieved the best accuracy results in our testing.
 
 ![speaker data clusters](img/speaker_compare_no_cent.png)
 
@@ -136,7 +136,7 @@ Looking at the figure above, focusing on speaker 4, it is clear there are cluste
 
 ## Speaker Prediction Parameters
 
-Speaker prediciton parameters were tuned similarly to the VQ parameters.  Each test vector's total distortion with each codebook was plotted as shown below.
+Speaker prediction parameters were tuned similarly to the VQ parameters.  Each test vector's total distortion with each codebook was plotted as shown below.
 
 ![speaker data centroids](img/testing_prediction.PNG)
 
@@ -158,7 +158,7 @@ Below are some user defined parameters that may be found at the top of speaker_r
 
 | Variable | Description |
 | --- | --- |
-| WORD_DETECT_THRESH_DB | The power threshold for detecting the word begining. If the frame average power is over this threshold, it is determined to be the start of the word.|
+| WORD_DETECT_THRESH_DB | The power threshold for detecting the word beginning. If the frame average power is over this threshold, it is determined to be the start of the word.|
 | WORD_LENGTH_MS | |
 
 ### MFCC Parameters
@@ -268,7 +268,7 @@ After calculating the MFCCs for each training file, we then plotted the framed t
 
 ### Test 6
 Next we LBG-VQ method to encode our training files via a method generally referred to as k-clustering.  The main idea behind k-clustering is to generate a "codebook" of "codewords" per each speaker we want to identify. For this project, a "codebook" will be an array of centroids, and a "codeword" will be a centroid.  Each centroid will be determined through the iterative LBG-VQ algorithm which essentially does the following steps each iteration:
-- Cluster closest data points to each centroid by finding the minimum Euclidian distance.
+- Cluster closest data points to each centroid by finding the minimum Euclidean distance.
 - Update each centroid by averaging each dimension of the data points clustered to each centroid.
 - Repeat the cluster and update process until a desired distortion change reaches a user defined threshold.
 - Split all centroids and repeat all steps until desired amount of centroids and distortion change is reached.
@@ -293,13 +293,13 @@ Finally we may look at the data points of the two different speakers with the de
 Using the programs to train and test speaker recognition on the data sets.
 
 ### Test 7
-With sufficient Signal to Noise Ratio (SNR), our system is able to easily identify all 11 test files.  Only until the SNR of our test file is 12dB or lower do we see a degredation in our system, where our system was 81% accurate rather than 100%.
+With sufficient Signal to Noise Ratio (SNR), our system is able to easily identify all 11 test files.  Only until the SNR of our test file is 12dB or lower do we see a degradation in our system, where our system was 81% accurate rather than 100%.
 
 ### Test 8
 We passed our signals through multiple notch filters corresponding to different Mel-Frequency filter banks (1 notch filter at a time), and this did not affect the accuracy of our system.  We maintained 100% accuracy for all of the 11 test files.
 
 ### Test 9
-We recorded ourselves saying the words as extra data. Additionally, we downloaded an extra signal from: https://www.kaggle.com/jbuchner/synthetic-speech-commands-dataset. The extra data was added to the training and testing data sets as s12.wav, s13.wav, and s14.wav. The speacker recognition program was able to sucessfuly tell the new speakers apart from the rest of the speakers.
+We recorded ourselves saying the words as extra data. Additionally, we downloaded an extra signal from: https://www.kaggle.com/jbuchner/synthetic-speech-commands-dataset. The extra data was added to the training and testing data sets as s12.wav, s13.wav, and s14.wav. The speaker recognition program was able to successfully tell the new speakers apart from the rest of the speakers.
 
 ![test 9 results](img/test_9.png)
 
