@@ -8,6 +8,8 @@
 # Documenation
 !docs/
 !*.pdf
+!*.pptx
+!*.xlsx
 
 # Data
 !data/harvard_sentences/
