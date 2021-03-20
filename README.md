@@ -29,7 +29,7 @@ Analyzing the training and testing data sets, we noticed that some signals have 
 
 ### Signal Amplitude Scaling
 
-Another undesirable characteristic of the data sets that we noticed is the variation in signal amplitudes between the different signals. This also makes it more difficult to detect the start of the word in the signal. An example below shows how much signal amplitudes differ between s01.was and s09.was in the training data set.
+Another undesirable characteristic of the data sets that we noticed is the variation in signal amplitudes between the different signals. This also makes it more difficult to detect the start of the word in the signal. An example below shows how much signal amplitudes differ between s01.wav and s09.wav in the training data set.
 
 ![amp. scaling](img/amplitude_scaling.png)
 
@@ -67,7 +67,7 @@ The next step in the MFCC process is to calculate the cepstrum of the filter ban
 
 ![cepstrum](img/ceps.png)
 
-As seen in the figure below, most of the energy of the cepstrum output is contained in the lower coefficients. To extract significant features, only a subset of the cepstrum coefficients is used for the MFCC output.
+As seen in the figure above, most of the energy of the cepstrum output is contained in the lower coefficients. To extract significant features, only a subset of the cepstrum coefficients is used for the MFCC output.
 
 ### Normalization
 
@@ -116,7 +116,7 @@ Since there is a variation to how each speaker in the data sets talks, the STFT 
 
 The number of mel-spaced filter banks determines the resolution of the spectral components after we filter the signals through the filter banks. A good value optimizes the spectral resolution and does not have excessive banks that are redundant. After trying different values, we found that using **40 banks** gave us a good spectral resolution and worked well with our data sets.
 
-Since most of the energy is contained in a few of the cepstrum coefficients, only a selected range is used for the MFCC output. We found that the signals had similar values for the first coefficient, so we used did not use the first coefficient for the MFCC output. Additionally, we found that most of the energy was contained in the first 14 bins. So we used cepstrum coefficients **2-12** for the MFCC output, and the parameter worked well with our data sets.
+Since most of the energy is contained in a few of the cepstrum coefficients, only a selected range is used for the MFCC output. We found that the signals had similar values for the first coefficient, so we used did not use the first coefficient for the MFCC output. Additionally, we found that most of the energy was contained in the first 14 bins. So we used cepstrum coefficients **2-14** for the MFCC output, and the parameter worked well with our data sets.
 
 ## VQ Parameters
 
