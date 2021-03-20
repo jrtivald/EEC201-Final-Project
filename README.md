@@ -9,67 +9,98 @@ Date: March 2021
 
 # Project Overview
 
-This project implements what is known as the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [1], which falls under the general umbrella of k-clustering, to learn and recognize human speech. The algorithm may read in training data (*.wav audio files) to generate "codebooks" (combination of "codewords") which characterize each training files Mel-Frequency Cepstral Coefficients (MFCC).  The Algorithm may then read in test data generated from the same speaker to identify which speaker the test data belongs to based on the learned "codebook."
+In this project, we implement a speaker recognition program that learns a set of speakers and then identifies if a test speaker is one of the learned speakers. The recognition process can be broken down into two main parts: speech feature extraction and speech feature matching.
+
+Before extracting the speech features, the speech signal is pre-processed to clean up undesired characteristics such as DC offsets and signal amplitude variations between different speakers. Next, the region that contains the word is detected and extracted from the speech signal. The speech features are then extracted from the pre-processed signals using Mel-Frequency Cepstral Coefficients (MFCC) [1].
+
+For the feature matching part, this project implements what is known as the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [2], which falls under the general umbrella of k-clustering, to learn and recognize human speech. The algorithm may read in training data (*.wav audio files) to generate "codebooks" (combination of "codewords") which characterize each training files MFCC. The Algorithm may then read in test data generated from the same speaker to identify which speaker the test data belongs to based on the learned "codebook."
 
 # Speech Feature Extraction
 
-From project description:
-Using digital signal processing (DSP) tools can extract a set of features for further analysis.
-The speech signal is a slowly timed varying signal (it is called quasi-stationary). When examined over a
-sufficiently short period of time (between 5 and 100 msec), its characteristics are mostly stationary. Over
-long duration (> 1/5 seconds), their signal characteristic variation would reflect the different sounds being
-spoken. Therefore, short-time spectral analysis is the most common way to characterize the speech signal.
-A wide range of possibilities exist for parametrically representing the speech signal for the speaker
-recognition task, such as Linear Prediction Coding (LPC), Mel-Frequency Cepstrum Coefficients (MFCC),
-and others. MFCC is perhaps the best known and most popular, and will be suggested for this project.
-MFCC’s are based on the known variation of the human ear’s critical bandwidths with frequency, filters
-spaced linearly at low frequencies and logarithmically at high frequencies have been used to capture the
-phonetically important characteristics of speech. This is expressed in the mel-frequency scale, which is a
-linear frequency spacing below 1000 Hz and a logarithmic spacing above 1000 Hz. One nice discussion
-can be found at https://haythamfayek.com/2016/04/21/speech-processing-for-machine-learning.html
-
-TODO: write a short intoruction for speech feature extraction section
-
 ## Signal Pre-Processing
 
-TODO: write up a description of the pre-processing we do on the signal such as pre-emphasis filtering, detection of active word part of signal, normalization/auto-gain
+The input data sets have some undesired characteristics that we want to 'clean up' before we attempt to extract speech features from them. After cleaning up the data sets, the significant spoken word part of the signals is isolated to further improve feature extraction.
 
-## Mel-Frequency Cepstral Coefficients
+### Signal Mean Normalization
 
-TODO: write up the a description of how we implemented MFCC
+Analyzing the training and testing data sets, we noticed that some signals have DC offsets. Later on when we are extracting the words from the signals, the DC offset makes it more difficult to identify the start of the word part of the signal. To mitigate this issue, we normalize the signals to remove the DC offsets. For example, the figure bellow shows that s09.wav in the training data set has a DC offset which is then removed after mean normalization.
+
+![mean norm](img/mean_norm.PNG?raw=true)
+
+### Signal Amplitude Scaling
+
+Another undesirable characteristic of the data sets that we noticed is the variation in signal amplitudes between the different signals. This also makes it more difficult to detect the start of the word in the signal. An example bellow shows how much signal amplitudes differ between s01.was and s09.was in the training data set.
+
+![amp. scaling](img/amplitude_scaling.PNG?raw=true)
+
+To mitigate this issue, we scaled the amplitudes to be between -1 and 1 by finding the L-Infinity norm of the signal and then dividing the signal by the norm.
+
+### Word Detection
+
+Looking at the different signals in the data sets, we noticed that there are 'quite' parts and a 'word' part. The quiet parts do not contain any important features, so we extracted the word parts from the signals to reduce the effect of the quiet parts on the speaker detection. To extract the word part, we split the signal into multiple overlapping frames. Then we estimated the PSD of each frame, and calculated the average power in that frame. Once the average power exceeded a threshold, we determined that to be the start of the word. Then we collected a determined amount of samples after the start of the word to extract the word. The figure bellow demonstrates the word detection process.
+
+![word detection](img/word_detection.PNG?raw=true)
+
+## Mel-Frequency Cepstral Coefficients (MFCC)
+
+After cleaning up and isolating the word from the input signals, we extract the speech features by calculating MFCC of the signals. The MFCC process consists of several steps that are described in further detail in the sections bellow.
+
+### Short Time Fourier Transform (STFT)
+
+The first step in the MFCC process is performing a STFT on the signal. This is done by splitting the signal into multiple overlapping windows, and then performing a FFT on each window. The PSD of each frame is then estimated by looking at the magnitude squared of the FFT coefficients. The overall process can be visualized with a spectrogram.
+
+![mfcc stft](img/mfcc_stft.PNG?raw=true)
+
+### Mel-Spaced Filter Banks
+
+The Mel-spaced filter banks models how humans perceive sound. The lower banks are spaced linearly apart, and the higher banks are spaced logarithmically apart. The figure bellow is a plot of the filter banks we used.
+
+![mel filt banks](img/mel_filt_banks.PNG?raw=true)
+
+To filter the signal through the filter bank, the STFT output matrix was multiplied with the filter bank matrix. The filter bank output is visualized with a spectrogram in the figure bellow.
+
+![mel banks](img/mel_banks.PNG?raw=true)
+
+### Cepstrum
+
+The next step in the MFCC process is to calculate the cepstrum of the filter bank output. This converts the the signal spectra back to time domain, and represents the different features of each frame. The output of the cepstrum is visualized with a spectrogram in the figure bellow.
+
+![cepstrum](img/ceps.PNG?raw=true)
+
+As seen in the figure bellow, most of the energy of the cepstrum output is contained in the lower coefficients. To extract significant features, only a subset of the cepstrum coefficients is used for the MFCC output.
+
+### Normalization
+
+As seen in the figure above, some coefficients have outliers that skew the coefficient values in time in a certain direction. To reduce the effect of this skew, each coefficient value in time was mean normalized. Additionally, it is seen that the magnitude varies greatly between the coefficients so some coefficients would have a more significant effect than others. To mitigate this, each coefficient value in time was then also normalized with L-infinity norm to limit the range between -1 and 1. The MFCC output is visualized in the figure bellow.
+
+![mfcc output](img/mfcc_output.PNG?raw=true)
 
 # Feature Matching
-
-From project description:
-Once the features are extracted, the problem of speaker recognition belongs to a much broader topic known
-as pattern recognition. Since the classification procedure here is applied on extracted features, it can be also
-referred to as feature matching. Since the set of patterns that the individual classes of which are already
-known, then one has a problem in supervised learning.
 
 After the MFCCs of an input signal has been calculated, we then want to "learn" input signals such that we may match future input signal generated from the same speaker. This may be accomplished by use of the Linde Buzo Gray (LBG) Vector Quantization (VQ) method [1], which falls under the general umbrella of k-clustering, to learn and recognize human speech.
 
 ## Vector Quantization
 
-Vector quantization, simply stated, is the process of modeling probability distribution functions by the distribtuion of training vectors.  This process includes evaluating data vectors in a multi-dimensional feature space.  When training a VQ system, all the training data vector in the feature space are reduced to a few key areas within the feature space which are referred to as codewords or centroids.  Each training vector will have a user defined number of codewords, and all codewords combined together are referred to as the codebook.  The process of evaluating a training vector's codebook is accomplished by using the LBG algorithm shown below. [2]
+Vector quantization, simply stated, is the process of modeling probability distribution functions by the distribution of training vectors.  This process includes evaluating data vectors in a multi-dimensional feature space.  When training a VQ system, all the training data vector in the feature space are reduced to a few key areas within the feature space which are referred to as codewords or centroids.  Each training vector will have a user defined number of codewords, and all codewords combined together are referred to as the codebook.  The process of evaluating a training vector's codebook is accomplished by using the LBG algorithm shown below. [2]
 
 ![LBG_BD](img/lbg_vq_diagram.PNG?raw=true)
 
-Our implmentation of the above diagram allows the user to specify a centroid(codeword) count for each speaker's training vector. However, because of the nature of the LBG algorithm, each speakers codebook may only have a power of 2 centroids due to centroid splitting. Clustering and distortion were both achieved by use of the Euclidean distance between centroids and vector data.  This measurement is also referred to as the Holder norm and is shown below.[1]
+Our implementation of the above diagram allows the user to specify a centroid(codeword) count for each speaker's training vector. However, because of the nature of the LBG algorithm, each speakers codebook may only have a power of 2 centroids due to centroid splitting. Clustering and distortion were both achieved by use of the Euclidean distance between centroids and vector data.  This measurement is also referred to as the Holder norm and is shown below.[1]
 
 ![DISTEU](img/distortion.PNG?raw=true)
 
-This calculation was used for clustering by finding which centroids returned the smallest Euclidean distance for each data point, and this calculation is used to find the total distortion by adding up all the minimum Euclidean distances.  After each iteration, the current total distortion is compared to previous iteration's total distortion.  When the change in total distortion is less than a user defined threshold, epsilon, then the algorithm has found the best centroids which map the vector data for the current amount of centroids.  At this point, the LBG algorithm will either add more cnetroids by splitting all current centroids, or finsih if the current centroid count is the desired amount.
+This calculation was used for clustering by finding which centroids returned the smallest Euclidean distance for each data point, and this calculation is used to find the total distortion by adding up all the minimum Euclidean distances.  After each iteration, the current total distortion is compared to previous iteration's total distortion.  When the change in total distortion is less than a user defined threshold, epsilon, then the algorithm has found the best centroids which map the vector data for the current amount of centroids.  At this point, the LBG algorithm will either add more centroids by splitting all current centroids, or finish if the current centroid count is the desired amount.
 
 ## Speaker Recognition
 
-The speaker recognition process is very similar to what was described in the Vector Quantizaton section.  The main idea for speaker recognition is to cluster and calculate the total distortion of the test vector data for each codebook that was trained.  Whichever codebook provides the least amount of distortion is suppsoed to be the speaker who generated the test vector data.
+The speaker recognition process is very similar to what was described in the Vector Quantization section.  The main idea for speaker recognition is to cluster and calculate the total distortion of the test vector data for each codebook that was trained.  Whichever codebook provides the least amount of distortion is supposed to be the speaker who generated the test vector data.
 
-However, there is a little more to the story of recognizing a speaker. There may be an event where two codebooks provide similar total distortions, but also minimum total distortions compared to the rest of the codebooks.  Therfore we need to make our recognition more roboust by determining some level of confidence that the codebook which provided the minimum total distortion is the speaker who generated the test vector data.
+However, there is a little more to the story of recognizing a speaker. There may be an event where two codebooks provide similar total distortions, but also minimum total distortions compared to the rest of the codebooks.  Therefore we need to make our recognition more robust by determining some level of confidence that the codebook which provided the minimum total distortion is the speaker who generated the test vector data.
 
 We implemented the following idea:
 - First, normalize all the total distortions generated from each codebook for one test vector between 0 and 1
 - Next, take the mean of all total distortions, disregard all codebooks which provide a total distortion greater than the mean
-- Last, Compare all codebooks which are less than the mean, but not the minimum, to a user defined thrshold
+- Last, Compare all codebooks which are less than the mean, but not the minimum, to a user defined threshold
 
 If the other potential codebook's total distortion is less than the user defined threshold, then we determine the text vector speaker is not recognized.
 
@@ -77,11 +108,15 @@ If the other potential codebook's total distortion is less than the user defined
 
 ## Word Detection Parameters
 
-TBD
+The starting average power of a word varies between the different speakers in the data sets. Additionally, the amount of time it takes for the speaker to say the word varies as well. After trying different parameter values, we determined that a **-45 dB threshold** and a **500 ms word length** (6250 samples at 12.5 kHz sample rate) fits our data sets well.
 
 ## MFCC Parameters
 
-TBD
+Since there is a variation to how each speaker in the data sets talks, the STFT window needed to be adjusted so that spectral features of each part of the word are not smeared and time variations are detected. Additionally, the number of FFT points determines the frequency sampling resolution of each window. We found that using a **25 ms window** with **15 ms overlap** worked well for our data sets. Additionally, we found that a **1024 point FFT** gave us enough resolution to tell spectral features apart.
+
+The number of mel-spaced filter banks determines the resolution of the spectral components after we filter the signals through the filter banks. A good value optimizes the spectral resolution and does not have excessive banks that are redundant. After trying different values, we found that using **40 banks** gave us a good spectral resolution and worked well with our data sets.
+
+Since most of the energy is contained in a few of the cepstrum coefficients, only a selected range is used for the MFCC output. We found that the signals had similar values for the first coefficient, so we used did not use the first coefficient for the MFCC output. Aditionaly, we found that most of the energy was contained in the first 14 bins. So we used cepstrum coefficients **2-12** for the MFCC output, and the parameter worked well with our data sets.
 
 ## VQ Parameters
 
@@ -111,46 +146,54 @@ Here we are easily visualizing the total distortion of all test vectors with all
 
 Looking at the training vector's total distortion, as shown above, also helped feedback on how well our VQ parameters are tuned.
 
-# How to run the speech recognition MATLAB program
+# How to Run the Speech Recognition MATLAB Program
 
 ## Running Speaker Recognition
-Simply clone this repository, set ~EEC201-FINAL_PROJECT/matlab/ as your Matlab's working directory, and type "speaker_recognition" into the command line. Or open speaker_recognition.m and click "run."
+Simply clone this repository, set '~EEC201-FINAL_PROJECT/matlab/' as your Matlab's working directory, and type "speaker_recognition" into the command line. Or open speaker_recognition.m in MATLAB and click "run".
 
 ## Parameter Modification
-Below are some user defined parameters that may be found at the top of speaker_recognition.m (around line 28) which allows the user to easily make critical changes to the speaker recognition algorithm.
+Below are some user defined parameters that may be found at the top of speaker_recognition.m which allows the user to easily make critical changes to the speaker recognition algorithm.
 
-### MFCC Paramters
+### Word Detection Parameters
+
 | Variable | Description |
 | --- | --- |
-| FRAME_SIZE_MS     | Size of each data frame in miliseconds |
-| FRAME_OVERLAP_MS  | Overlap of each data frame in miliseconds |
-| FFT_NUM_POINTS    | Length of FFT for calculating MFCCs |
-| MEL_NUM_BANKS     | Number of Mel-Frequency filter banks |
-| CEPS_START_BANK   | First filter bank to calculate cpestrum of (usually used to remove DC filter bank) |
-| CEPS_NUM_BANKS    | Number of filter banks to calculate cepstrum of |
+| WORD_DETECT_THRESH_DB | The power threshold for detecting the word begining. If the frame average power is over this threshold, it is determined to be the start of the word.|
+| WORD_LENGTH_MS | |
 
-### LBG-VQ Paramters
+### MFCC Parameters
+
+| Variable | Description |
+| --- | --- |
+| FRAME_SIZE_MS     | Size of STFT window in milliseconds |
+| FRAME_OVERLAP_MS  | Overlap of STFT windows in milliseconds |
+| FFT_NUM_POINTS    | Number of FFT points to use for calculating STFT |
+| MEL_NUM_BANKS     | Number of Mel-Frequency filter banks |
+| CEPS_START_COEFF  | First cepstrum coefficient to use for MFCC output|
+| CEPS_NUM_COEFF    | Number of cepstrum coefficients to use for MFCC output |
+
+### LBG-VQ Parameters
+
 | Variable | Description |
 | --- | --- |
 | LBG_VQ_EPSILON        | Threshold to determine acceptably small distortion change |
 | LBG_VQ_M              | 1xS vector specifying centroid count for each speaker, where S is total count of speakers |
 | SPKR_CENTROIDS        | Speaker, denoted by integer value, to plot converged centroids with corresponding clustered data |
 | SPKR_PLT              | 1xS vector specifying which speakers to plot for comparing centroid and data in feature spaces specified by CODEBOOK_FIGS, where S may be integer values specifying 1 up to all speakers |
-| CODEBOOK_MFCC         | 1xS vector specifing which MFCCs will be part of every speaker's codebook, where S may be integer values specifying 1 to all MFCCs |
+| CODEBOOK_MFCC         | 1xS vector specifying which MFCCs will be part of every speaker's codebook, where S may be integer values specifying 1 to all MFCCs |
 | CODEBOOK_FIGS         | 2-D array specifying which feature spaces to plot. Each row is either a 1X3 vector containing integer values corresponding to the MFCC to plot (NOTE: 3-rd value in a row may be 0 for a 2-D plot, otherwise its a positive integer for a 3-D plot) |
 
 ### Speaker Prediction Parameters
 | Variable | Description |
 | --- | --- |
-| CONFIDENCE_THRESHOLD     | Threshold not to be exceeded by incorrect predictions in order to make a prediction. If threshold is exceeded, no decision is made. |
-
-# Project Tasks
+| PREDICTION_THRESHOLD     | Threshold for the prediction value for a speaker. The prediction is determined is correct if over the threshold.
+# Project Tasks (Tests)
 
 ## Speech Data Files
 
 ### Test 1
 
-The test sounds were played, and each project attempted to match the test speaker with the training speaker. The results are summarized in the table below
+First the training speakers were played. Then the test speakers were played, and each project member attempted to match the test speaker with the training speaker. The results are summarized in the table below.
 
 | Train Audio | Test-Jonathan | Test-Igor |
 | --- | --- | --- |
@@ -160,12 +203,12 @@ The test sounds were played, and each project attempted to match the test speake
 | s4 | s4 | s4 |
 | s5 | s5 | s5 |
 | s6 | s2 | s6 |
-| s7 | s8 | s7 |
+| s7 | s8 | s6 |
 | s8 | s7 | s8 |
-| s9 | s9 | s8 |
-| s10 | s10 | s8 |
-| s11 | s11 | s8 |
-| | 64% | 0% |
+| s9 | s9 | s9 |
+| s10 | s10 | s10 |
+| s11 | s11 | s11 |
+| | 64% | 90% |
 
 ## Speech Processing
 
@@ -256,9 +299,13 @@ With sufficient Signal to Noise Ratio (SNR), our system is able to easily identi
 We passed our signals through multiple notch filters corresponding to different Mel-Frequency filter banks (1 notch filter at a time), and this did not affect the accuracy of our system.  We maintained 100% accuracy for all of the 11 test files.
 
 ### Test 9
-Test the system with other speech files you may find online. E.g. https://lionbridge.ai/datasets/best-speech-recognition-datasets-for-machine-learning/
+We recorded ourselves saying the words as extra data. Additionally, we downloaded an extra signal from: https://www.kaggle.com/jbuchner/synthetic-speech-commands-dataset. The extra data was added to the training and testing data sets as s12.wav, s13.wav, and s14.wav. The speacker recognition program was able to sucessfuly tell the new speakers apart from the rest of the speakers.
+
+![test 9 results](img/test_9.png?raw=true)
 
 # References
-[1] Y. Linde, A. Buzo & R. Gray, “An algorithm for vector quantizer design”, IEEE Transactions on Communications, Vol.28, pp.84-95, 1980.
+[1] Vibha Tiwari, "MFCC and its applications in speaker recognition", International Journal on Emerging Technologies 1(1): 19-22(2010)
 
-[2] Z. Ding, “Speaker Recognition System 2021”, University of California Davis, EEC-201, 2021
+[2] Y. Linde, A. Buzo & R. Gray, “An algorithm for vector quantizer design”, IEEE Transactions on Communications, Vol.28, pp.84-95, 1980.
+
+[3] Z. Ding, “Speaker Recognition System 2021”, University of California Davis, EEC-201, 2021

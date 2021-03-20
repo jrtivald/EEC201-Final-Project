@@ -17,9 +17,9 @@ clc;
 
 % Signals parameters
 TRAIN_DIR_PATH = '../data/Training_Data';
-TRAIN_REC_CNT  = 8;
-TEST_DIR_PATH  = '../data/Test_Data_18_db_snr';
-TEST_REC_CNT   = 11;
+TRAIN_REC_CNT  = 14;
+TEST_DIR_PATH  = '../data/Test_Data';
+TEST_REC_CNT   = 14;
 CHANNEL        = 1;            % Some audio files have stereo
 SAMPLE_RATE    = 12500;
 
@@ -32,8 +32,8 @@ FRAME_SIZE_MS    = 25;
 FRAME_OVERLAP_MS = 15;
 FFT_NUM_POINTS   = 1024;
 MEL_NUM_BANKS    = 40;
-CEPS_START_BANK  = 2;
-CEPS_NUM_BANKS   = 12;
+CEPS_START_COEFF = 2;
+CEPS_NUM_COEFF   = 12;
 
 % LBG VQ Parameters
 LBG_VQ_EPSILON      = 0.01;
@@ -50,7 +50,7 @@ CODEBOOK_FIGS = [[ 1  2  3];
                  [10 11 12]];
 
 % Speaker Prediction
-PREDICTION_THRESHOLD = 0.45;
+PREDICTION_THRESHOLD = 0.25;
 
 %% Read in training data
 
@@ -121,13 +121,13 @@ end
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
-figure('Name','Extracted Training Word Signals Spectrograms')
-for i = 1:TRAIN_REC_CNT
-    subplot(2,ceil(TRAIN_REC_CNT/2),i)
-    spectrogram(train_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-        ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-    title(strcat('s',num2str(i),'.wav'))
-end
+% figure('Name','Extracted Training Word Signals Spectrograms')
+% for i = 1:TRAIN_REC_CNT
+%     subplot(2,ceil(TRAIN_REC_CNT/2),i)
+%     spectrogram(train_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
+%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
+%     title(strcat('s',num2str(i),'.wav'))
+% end
 
 %% Calculate the Mel-Frequency Cepstrum Coefficients
 
@@ -136,20 +136,20 @@ training_mfcc_coeffs = cell(1,TRAIN_REC_CNT);
 for i = 1:TRAIN_REC_CNT
     training_mfcc_coeffs{i} = mfcc(train_word_signals{i}, SAMPLE_RATE, ... 
         FRAME_SIZE_MS,FRAME_OVERLAP_MS, FFT_NUM_POINTS, MEL_NUM_BANKS, ...
-        CEPS_START_BANK, CEPS_NUM_BANKS);
+        CEPS_START_COEFF, CEPS_NUM_COEFF);
 end
 
-% plot MFCC coefficients
-figure('Name','Training MFCCs')
-for i = 1:TRAIN_REC_CNT
-   subplot(2,ceil(TRAIN_REC_CNT/2),i)
-   imagesc(training_mfcc_coeffs{i}')
-   colorbar
-   axis xy
-   title(strcat('MFCC s',num2str(i),'.wav'))
-   xlabel('Coeff. #')
-   ylabel('Frame #')
-end
+% % plot MFCC coefficients
+% figure('Name','Training MFCCs')
+% for i = 1:TRAIN_REC_CNT
+%    subplot(2,ceil(TRAIN_REC_CNT/2),i)
+%    imagesc(training_mfcc_coeffs{i}')
+%    colorbar
+%    axis xy
+%    title(strcat('MFCC s',num2str(i),'.wav'))
+%    xlabel('Coeff. #')
+%    ylabel('Frame #')
+% end
 
 %% Vector Quantize the training data for matching the test data
 
@@ -187,12 +187,12 @@ end
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
-%% Run signals through pre-emphasis
+%% do mean normalization on signals
 
-test_signals_preemph = cell(1,TEST_REC_CNT);
+test_signals_mean_norm = cell(1,TEST_REC_CNT);
 
 for i = 1:TEST_REC_CNT
-   test_signals_preemph{i} = pre_emph(test_signals{i}); 
+   test_signals_mean_norm{i} = test_signals{i} - mean(test_signals{i}); 
 end
 
 %% Normalize signals to [-1:1] range (ie auto-gain)
@@ -200,8 +200,8 @@ end
 test_signals_normalized = cell(1,TEST_REC_CNT);
 
 for i = 1:TEST_REC_CNT
-    test_signals_normalized{i} = test_signals_preemph{i} ./ norm(...
-        test_signals_preemph{i},'Inf');
+    test_signals_normalized{i} = test_signals_mean_norm{i} ./ norm(...
+        test_signals_mean_norm{i},'Inf');
 end
 
 %% Extract word setctions from signals
@@ -221,13 +221,13 @@ end
 %     title(strcat('s',num2str(i),'.wav'))
 % end
 
-figure('Name','Extracted Test Word Signals Spectrograms')
-for i = 1:TEST_REC_CNT
-    subplot(2,ceil(TEST_REC_CNT/2),i)
-    spectrogram(test_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
-        ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
-    title(strcat('s',num2str(i),'.wav'))
-end
+% figure('Name','Extracted Test Word Signals Spectrograms')
+% for i = 1:TEST_REC_CNT
+%     subplot(2,ceil(TEST_REC_CNT/2),i)
+%     spectrogram(test_word_signals{i},hamming(ceil(FRAME_SIZE_MS/1000*SAMPLE_RATE)),...
+%         ceil(FRAME_OVERLAP_MS/1000*SAMPLE_RATE),FFT_NUM_POINTS,SAMPLE_RATE);
+%     title(strcat('s',num2str(i),'.wav'))
+% end
 
 %% Calculate MFCC
 
@@ -236,20 +236,20 @@ test_mfcc_coeffs = cell(1,TEST_REC_CNT);
 for i = 1:TEST_REC_CNT
     test_mfcc_coeffs{i} = mfcc(test_word_signals{i}, SAMPLE_RATE, ... 
         FRAME_SIZE_MS,FRAME_OVERLAP_MS, FFT_NUM_POINTS, MEL_NUM_BANKS, ...
-        CEPS_START_BANK, CEPS_NUM_BANKS);
+        CEPS_START_COEFF, CEPS_NUM_COEFF);
 end
 
-% plot MFCC coefficients
-figure('Name','Test MFCCs')
-for i = 1:TEST_REC_CNT
-   subplot(2,ceil(TEST_REC_CNT/2),i)
-   imagesc(test_mfcc_coeffs{i}')
-   colorbar
-   axis xy
-   title(strcat('MFCC s',num2str(i),'.wav'))
-   xlabel('Coeff. #')
-   ylabel('Frame #')
-end
+% % plot MFCC coefficients
+% figure('Name','Test MFCCs')
+% for i = 1:TEST_REC_CNT
+%    subplot(2,ceil(TEST_REC_CNT/2),i)
+%    imagesc(test_mfcc_coeffs{i}')
+%    colorbar
+%    axis xy
+%    title(strcat('MFCC s',num2str(i),'.wav'))
+%    xlabel('Coeff. #')
+%    ylabel('Frame #')
+% end
 
 %% Vector Quantize the test data
 
