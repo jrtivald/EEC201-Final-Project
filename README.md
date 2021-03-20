@@ -25,13 +25,13 @@ The input data sets have some undesired characteristics that we want to 'clean u
 
 Analyzing the training and testing data sets, we noticed that some signals have DC offsets. Later on when we are extracting the words from the signals, the DC offset makes it more difficult to identify the start of the word part of the signal. To mitigate this issue, we normalize the signals to remove the DC offsets. For example, the figure bellow shows that s09.wav in the training data set has a DC offset which is then removed after mean normalization.
 
-![mean norm](img/mean_norm.PNG)
+![mean norm](img/mean_norm.png)
 
 ### Signal Amplitude Scaling
 
 Another undesirable characteristic of the data sets that we noticed is the variation in signal amplitudes between the different signals. This also makes it more difficult to detect the start of the word in the signal. An example bellow shows how much signal amplitudes differ between s01.was and s09.was in the training data set.
 
-![amp. scaling](img/amplitude_scaling.PNG)
+![amp. scaling](img/amplitude_scaling.png)
 
 To mitigate this issue, we scaled the amplitudes to be between -1 and 1 by finding the L-Infinity norm of the signal and then dividing the signal by the norm.
 
@@ -39,7 +39,7 @@ To mitigate this issue, we scaled the amplitudes to be between -1 and 1 by findi
 
 Looking at the different signals in the data sets, we noticed that there are 'quite' parts and a 'word' part. The quiet parts do not contain any important features, so we extracted the word parts from the signals to reduce the effect of the quiet parts on the speaker detection. To extract the word part, we split the signal into multiple overlapping frames. Then we estimated the PSD of each frame, and calculated the average power in that frame. Once the average power exceeded a threshold, we determined that to be the start of the word. Then we collected a determined amount of samples after the start of the word to extract the word. The figure bellow demonstrates the word detection process.
 
-![word detection](img/word_detection.PNG)
+![word detection](img/word_detection.png)
 
 ## Mel-Frequency Cepstral Coefficients (MFCC)
 
@@ -49,23 +49,23 @@ After cleaning up and isolating the word from the input signals, we extract the 
 
 The first step in the MFCC process is performing a STFT on the signal. This is done by splitting the signal into multiple overlapping windows, and then performing a FFT on each window. The PSD of each frame is then estimated by looking at the magnitude squared of the FFT coefficients. The overall process can be visualized with a spectrogram.
 
-![mfcc stft](img/mfcc_stft.PNG)
+![mfcc stft](img/mfcc_stft.png)
 
 ### Mel-Spaced Filter Banks
 
 The Mel-spaced filter banks models how humans perceive sound. The lower banks are spaced linearly apart, and the higher banks are spaced logarithmically apart. The figure bellow is a plot of the filter banks we used.
 
-![mel filt banks](img/mel_filt_banks.PNG)
+![mel filt banks](img/mel_filt_banks.png)
 
 To filter the signal through the filter bank, the STFT output matrix was multiplied with the filter bank matrix. The filter bank output is visualized with a spectrogram in the figure bellow.
 
-![mel banks](img/mel_banks.PNG)
+![mel banks](img/mel_banks.png)
 
 ### Cepstrum
 
 The next step in the MFCC process is to calculate the cepstrum of the filter bank output. This converts the the signal spectra back to time domain, and represents the different features of each frame. The output of the cepstrum is visualized with a spectrogram in the figure bellow.
 
-![cepstrum](img/ceps.PNG)
+![cepstrum](img/ceps.png)
 
 As seen in the figure bellow, most of the energy of the cepstrum output is contained in the lower coefficients. To extract significant features, only a subset of the cepstrum coefficients is used for the MFCC output.
 
@@ -73,7 +73,7 @@ As seen in the figure bellow, most of the energy of the cepstrum output is conta
 
 As seen in the figure above, some coefficients have outliers that skew the coefficient values in time in a certain direction. To reduce the effect of this skew, each coefficient value in time was mean normalized. Additionally, it is seen that the magnitude varies greatly between the coefficients so some coefficients would have a more significant effect than others. To mitigate this, each coefficient value in time was then also normalized with L-infinity norm to limit the range between -1 and 1. The MFCC output is visualized in the figure bellow.
 
-![mfcc output](img/mfcc_output.PNG)
+![mfcc output](img/mfcc_output.png)
 
 # Feature Matching
 
